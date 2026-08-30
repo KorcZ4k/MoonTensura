@@ -5,6 +5,7 @@ import random
 from pathlib import Path
 from discord.ext import commands
 
+from comandos.RPG.barra_status import barra_mana, barra_vida
 from database.python.status import (
     obter_status
 )
@@ -285,53 +286,82 @@ class Status(commands.Cog):
             "Sorte",
             0
         )
-
+        vida = jogador.get(
+            "Vida",
+            0
+        )
+        vida_maxima = jogador.get(
+            "Vida_Maxima",
+            0
+        )
+        mana = jogador.get(
+            "Mana",
+            0
+        )
+        mana_maxima = jogador.get(
+            "Mana Total",
+            0
+        )
 
         # ======================================
         # EMBED
         # ======================================
 
         embed = discord.Embed(
-            title=f"| Status de {nome}",
-            color=discord.Color.blue(),
-            timestamp=discord.utils.utcnow()
-        )
-
+    title="📊 Status do Personagem",
+    color=0x8B0000
+    )
 
         embed.add_field(
-            name="👤 Personagem",
-            value=(
-                f"**Nome:** {nome}\n"
-                f"**Raça:** {raca}\n"
-                f"**Nível:** {nivel}\n"
-                f"**XP:** {xp}"
-            ),
-            inline=False
-        )
-
+    name="👤 Personagem",
+    value=(
+        f"**Nome:** {nome}\n"
+        f"**Raça:** {raca}\n"
+        f"**Nível:** {nivel}\n"
+        f"**XP:** {xp}"
+    ),
+    inline=False
+    )
 
         embed.add_field(
-            name="⚔️ Atributos",
-            value=(
-                f"**Força:** {forca}\n"
-                f"**Defesa:** {defesa}\n"
-                f"**Velocidade:** {velocidade}\n"
-                f"**Destreza:** {destreza}\n"
-                f"**Magia:** {magia}\n"
-                f"**Sorte:** {sorte}"
-            ),
-            inline=False
-        )
+    name="❤️ Vida",
+    value=(
+        f"`{barra_vida(vida, vida_maxima)}`\n"
+        f"**{vida}/{vida_maxima}**"
+    ),
+    inline=False
+    )
 
+        embed.add_field(
+    name="💧 Mana",
+    value=(
+        f"`{barra_mana(mana, mana_maxima)}`\n"
+        f"**{mana}/{mana_maxima}**"
+    ),
+    inline=False
+    )
 
-        embed.set_thumbnail(
-            url=membro.display_avatar.url
-        )
+        embed.add_field(
+    name="✨ Magículas",
+    value=f"**EM TESTE**",
+    inline=False
+    )
 
+        embed.add_field(
+    name="⚔️ Atributos",
+    value=(
+        f"**Força:** {forca}\n"
+        f"**Defesa:** {defesa}\n"
+        f"**Agilidade:** {agilidade}\n"
+        f"**Velocidade:** {velocidade}\n"
+        f"**Inteligência:** {inteligencia}"
+    ),
+    inline=False
+    )
 
         embed.set_footer(
-            text="Tensura Moon - Korczak Technologies!"
-        )
+    text="Tensura Moon • Korczak Technologies!"
+    )
 
 
         await ctx.send(

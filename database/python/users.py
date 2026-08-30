@@ -44,7 +44,7 @@ def cadastro(membros):
                         "Nivel": 1,
                         "XP": 0,
                         "Vida": 100,
-                        "Vida Máxima": 100,
+                        "Vida_Maxima": 100,
                         "Mana": 100,
                         "Mana Total": 100,
                         "Ma"
