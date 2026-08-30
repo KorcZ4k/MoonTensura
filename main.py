@@ -88,7 +88,7 @@ async def carregar_extensoes():
     await bot.load_extension("comandos.ECONOMIA.Mora")
     await bot.load_extension("comandos.ADMINISTRACAO.configurações")
 
-TOKEN = os.getenv('Discord_Token')
+TOKEN = os.getenv('DISCORD_TOKEN')
 async def main():
     async with bot:
         await carregar_extensoes()
