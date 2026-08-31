@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
-import json_db
+import database.python.json_db
+
 
 
 class RoleButton(discord.ui.Button):
