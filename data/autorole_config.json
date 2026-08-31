@@ -1,0 +1,58 @@
+{
+  "guilds": {
+    "1543039757146136586": {
+      "enabled": true,
+      "roles": {
+        "n_registro": "1543042848859889695",
+        "vips": "1543042805809684551",
+        "trabalhos": "1543042809836081256",
+        "desempregado": "1543042813862748160",
+        "nacionalidade": "1543042814496219198",
+        "idade": "1543042820422631556",
+        "genero": "1543042831357181982",
+        "caracteristica": "1543042836616708280",
+        "registro": "1543042846410539048"
+      },
+      "auto_assign": [
+        "n_registro",
+        "vips",
+        "trabalhos",
+        "desempregado",
+        "nacionalidade",
+        "idade",
+        "genero",
+        "caracteristica",
+        "registro"
+      ],
+      "dm_config": {
+        "enabled": true,
+        "title": "🌙 Bem-vindo ao Moon Tensura!",
+        "description": "Olá {user}! Seja bem-vindo ao servidor **Moon Tensura**!\n\n{roles_info}\n\nAproveite sua estadia! 🎉",
+        "footer": "Tensura Moon - Korczak Techonologies",
+        "thumbnail_url": null
+      }
+    }
+  },
+  "default_config": {
+    "enabled": false,
+    "roles": {
+      "n_registro": "1543042848859889695",
+      "vips": "1543042805809684551",
+      "trabalhos": "1543042809836081256",
+      "desempregado": "1543042813862748160",
+      "nacionalidade": "1543042814496219198",
+      "idade": "1543042820422631556",
+      "genero": "1543042831357181982",
+      "caracteristica": "1543042836616708280",
+      "registro": "1543042846410539048"
+    },
+    "auto_assign": [],
+    "dm_config": {
+      "enabled": false,
+      "title": "🌙 Bem-vindo ao Moon Tensura!",
+      "description": "Olá {user}! Seja bem-vindo ao servidor **Moon Tensura**!\n\n{roles_info}\n\nAproveite sua estadia! 🎉",
+      "footer": "Moon Tensura • Korczak Technologies",
+      "thumbnail_url": null
+    }
+  }
+}

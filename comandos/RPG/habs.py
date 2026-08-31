@@ -1,5 +1,7 @@
 import discord
 from discord.ext import commands
+from database.python.mongodb import db
+import datetime
 
 # Ordem de exibição das raridades no embed
 ORDEM_RARIDADES = ["Comum", "Única", "Raça", "Definitiva", "Suprema", "Extra"]
@@ -17,13 +19,12 @@ COR_RARIDADE = {
 
 class Habilidades(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
-        self.db = bot.db  # ajuste conforme como você acessa o mongo (ex: self.bot.mongo_client["seu_db"])
+        self.bot = bot  # ajuste conforme como você acessa o mongo (ex: self.bot.mongo_client["seu_db"])
 
     @commands.command(name="habilidades", aliases=["habs", "habils", "skills"])
     async def habs(self, ctx: commands.Context):
-        jogadores = self.db["Jogadores"]      # coleção dos jogadores (ajuste o nome se for diferente)
-        habilidades = self.db["Habilidades"]  # coleção com o catálogo de habilidades
+        jogadores = db["Jogadores"]      
+        habilidades = db["Habilidades"]  
 
         jogador = jogadores.find_one({
             "user_id": ctx.author.id,

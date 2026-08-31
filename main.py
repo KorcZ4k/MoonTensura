@@ -32,12 +32,7 @@ async def on_member_join(member):
                 Text = "Tensura Moon - Korczak Technologies! "
         )
 
-@bot.event
-async def on_message(message):
-    if message.content.startswith('!'):
-        await message.channel.send('Olá! Eu estou em manutenção agora')
-    await bot.process_commands(message)
-    
+
 @bot.event
 async def on_ready():
     fuso_horario = datetime.timezone(
@@ -83,6 +78,7 @@ async def on_ready():
         )
 
 async def carregar_extensoes():
+    await bot.load_extension("comandos.ADMINISTRACAO.autorole_commands")
     await bot.load_extension("comandos.RPG.habs")
     await bot.load_extension("comandos.ADMINISTRACAO.autorole")
     await bot.load_extension("comandos.RPG.status")
