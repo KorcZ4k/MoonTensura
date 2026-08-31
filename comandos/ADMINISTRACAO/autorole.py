@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import database.python.json_db
 
-
+json_db = database.python.json_db
 
 class RoleButton(discord.ui.Button):
     def __init__(self, role_id: int, emoji: str, label: str):
