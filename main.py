@@ -83,6 +83,7 @@ async def on_ready():
         )
 
 async def carregar_extensoes():
+    await bot.load_extension("comandos.ADMINISTRACAO.autorole")
     await bot.load_extension("comandos.RPG.status")
     await bot.load_extension("comandos.ECONOMIA.Hunos")
     await bot.load_extension("comandos.ECONOMIA.Mora")
