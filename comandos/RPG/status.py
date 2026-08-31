@@ -482,8 +482,6 @@ class Status(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command(name='habilidades', aliases = ["habs", "skills"])
-
 # ==========================================
 # SETUP
 # ==========================================
