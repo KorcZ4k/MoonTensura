@@ -1,6 +1,7 @@
 import discord
 import json
 import random
+import datetime
 
 from pathlib import Path
 from discord.ext import commands
@@ -12,7 +13,8 @@ from database.python.status import (
 
 from database.python.mongodb import db
 
-
+fuso = datetime.timezone(datetime.timedelta(hours= -3))
+horario = datetime.datetime.now(fuso)
 # ==========================================
 # COLLECTION
 # ==========================================
@@ -306,12 +308,13 @@ class Status(commands.Cog):
         # ======================================
         # EMBED
         # ======================================
-
+        avatar = ctx.author.display_avatar
         embed = discord.Embed(
     title="📊 Status do Personagem",
-    color=0x8B0000
+    color=0x8B0000,
+    timestamp=horario
     )
-
+        embed.set_thumbnail(url = avatar)
         embed.add_field(
     name="👤 Personagem",
     value=(
@@ -352,17 +355,19 @@ class Status(commands.Cog):
     value=(
         f"**Força:** {forca}\n"
         f"**Defesa:** {defesa}\n"
-        f"**Agilidade:** {agilidade}\n"
+        f"**Destreza:** {destreza}\n"
         f"**Velocidade:** {velocidade}\n"
-        f"**Inteligência:** {inteligencia}"
+        f"**Inteligência:** EM TESTE"
     ),
     inline=False
     )
 
         embed.set_footer(
-    text="Tensura Moon • Korczak Technologies!"
+    text="Tensura Moon - Korczak Technologies!"
     )
-
+        embed.set_image(
+            url = 'https://discord.com/channels/1543039757146136586/1543040901251596288/1543768808664080465'
+        )
 
         await ctx.send(
             embed=embed
