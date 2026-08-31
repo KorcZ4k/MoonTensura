@@ -1,0 +1,39 @@
+name: Rodar Bot Python 24-7
+
+on:
+  push:
+    branches: [ main, master ]  # Liga o bot quando você dá push no código
+  schedule:
+    
+cron: '0 /5 * *'        # Reinicia o bot automaticamente a cada 5 horas
+
+jobs:
+  rodar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330         # Desliga antes de bater o limite de 6h do GitHub
+
+    steps:
+    
+name: Baixando o codigo do bot
+    uses: actions/checkout@v4
+
+    # Configura a máquina com Python
+    
+name: Configurando Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: '3.10'
+
+    # Atualiza o pip e instala as dependências
+    
+name: Instalando as dependencias do Python
+    run: |
+      python -m pip install --upgrade pip
+      if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install discord.py; fi
+
+    # Liga o bot de verdade
+    
+name: Ligando o Bot Python
+    run: python main.py        # <- Mude para bot.py se o seu arquivo principal tiver esse nome!
+    env:
+      DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
