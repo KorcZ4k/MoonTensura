@@ -1,0 +1,261 @@
+[
+
+
+{
+    "nome": "Coerção",
+    "ID": "00001",
+    "elemento": null,
+    "raridade": "comum",
+    "chance": 0.4,
+    "descricao": "Permite intimidar os alvos com a voz e presença",
+    "passiva": "nao",
+    "ativa": "sim",
+    "bonus": {
+        "forca": 0,
+        "defesa": 0,
+        "vitalidade": 0,
+        "velocidade": 0,
+        "destreza": 0,
+        "magiculas": 0,
+        "inteligencia": 0,
+        "sorte": 0
+    },
+    "hab_ativa": "Intimida os alvos"
+},
+
+{
+    "nome": "Corrosão",
+    "ID": "00002",
+    "elemento": null,
+    "raridade": "comum",
+    "chance": 0.4,
+    "descricao": "Provoca corrosão em alvos",
+    "passiva": "nao",
+    "ativa": "sim",
+    "bonus": {
+        "forca": 0,
+        "defesa": 0,
+        "vitalidade": 0,
+        "velocidade": 0,
+        "destreza": 0,
+        "magiculas": 0,
+        "inteligencia": 0,
+        "sorte": 0
+    },
+    "hab_ativa": "Provoca corrosão em alvos."
+}
+
+{
+    "nome": "Visão Distante",
+    "ID": "00003",
+    "elemento": null,
+    "raridade": "comum",
+    "chance": 0.40,
+    "descricao": "Te dá o direito de enxergar alvos a longa distancia",
+    "passiva": "sim",
+    "ativa": "nao",
+    "bonus": {
+        "forca": 0,
+        "defesa": 0,
+        "vitalidade": 0,
+        "velocidade": 0,
+        "destreza": 0,
+        "magiculas": 0,
+        "inteligencia": 0.1,
+        "sorte": 0
+    },
+    "hab_ativa": "Te dá o direito de enxergar alvos a longa distancia"
+}
+{
+    "nome": "Voo gravitacional",
+    "ID": "00004",
+    "elemento": null,
+    "raridade": "comum",
+    "chance": 0.20,
+    "descricao": "Permite ao usuário voar e se locomover pelo ar, ganhando mais destreza e velocidade.",
+    "passiva": "sim",
+    "ativa": "sim",
+    "bonus": {
+        "forca": 0,
+        "defesa": 0,
+        "vitalidade": 0,
+        "velocidade": 0.15,
+        "destreza": 0.2,
+        "magiculas": 0,
+        "inteligencia": 0,
+        "sorte": 0
+    },
+    "hab_ativa": "Permite ao usuário voar e se locomover pelo ar, ganhando mais destreza e velocidade."
+},
+
+{
+    "nome": "Propulsão Hidraulica",
+    "ID": "00005",
+    "elemento": null,
+    "raridade": "comum",
+    "chance": 0.4,
+    "descricao": "Utiliza a pressão da água para impulsionar o usuário, aumentando sua velocidade e destreza.",
+    "passiva": "sim",
+    "ativa": "nao",
+    "bonus": {
+        "forca": 0,
+        "defesa": 0,
+        "vitalidade": 0,
+        "velocidade": 0.05,
+        "destreza": 0.05,
+        "magiculas": 0,
+        "inteligencia": 0,
+        "sorte": 0
+    },
+    "hab_ativa": "Utiliza a pressão da água para impulsionar o usuário, aumentando sua velocidade e destreza."
+},
+
+{
+    "nome": "Paralisia",
+    "ID": "00006",
+    "elemento": null,
+    "raridade": "comum",
+    "chance": 0.4,
+    "descricao": "Provoca paralisia em alvos",
+    "passiva": "nao",
+    "ativa": "sim",
+    "bonus": {
+        "forca": 0,
+        "defesa": 0,
+        "vitalidade": 0,
+        "velocidade": 0,
+        "destreza": 0,
+        "magiculas": 0,
+        "inteligencia": 0,
+        "sorte": 0
+    },
+    "hab_ativa": "Provoca paralisia em alvos."
+}
+
+{
+    "nome": "Veneno",
+    "ID": "00007",
+    "elemento": null,
+    "raridade": "efeito",
+    "chance": 0.40,
+    "descricao": "Provoca veneno em alvos, causando dano ao longo do tempo.",
+    "passiva": "nao",
+    "ativa": "sim",
+    "bonus": {
+        "forca": 0,
+        "defesa": 0,
+        "vitalidade": 0,
+        "velocidade": 0,
+        "destreza": 0,
+        "magiculas": 0,
+        "inteligencia": 0,
+        "sorte": 0
+    },
+    "hab_ativa": "Provoca veneno em alvos, causando dano ao longo do tempo."
+}
+{
+    "nome": "Barreira à Distância",
+    "ID": "00008",
+    "elemento": null,
+    "raridade": "comum",
+    "chance": 0.40,
+    "descricao": "Permite criar e assimilar uma barreira à longa distancia.",
+    "passiva": "nao",
+    "ativa": "sim",
+    "bonus": {
+        "forca": 0,
+        "defesa": 0,
+        "vitalidade": 0,
+        "velocidade": 0,
+        "destreza": 0,
+        "magiculas": 0,
+        "inteligencia": 0,
+        "sorte": 0
+    },
+    "hab_ativa": "Permite criar e assimilar uma barreira à longa distancia."
+}
+{
+        "nome": "Autorreconstituição",
+        "ID": "00009",
+        "elemento": null,
+        "raridade": "comum",
+        "chance": 0.15,
+        "descricao": "Permite regenerar danos sofridos pelo corpo.",
+        "passiva": "sim",
+        "ativa": "nao",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0.2,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Restaura partes danificadas do corpo."
+},
+{
+        "nome": "Fortalecimento",
+        "ID": "00010",
+        "elemento": null,
+        "raridade": "comum",
+        "chance": 0.2,
+        "descricao": "Reforça as capacidades físicas do usuário.",
+        "passiva": "sim",
+        "ativa": "nao",
+        "bonus": {
+            "forca": 0.2,
+            "defesa": 0.2,
+            "vitalidade": 0,
+            "velocidade": -0.1,
+            "destreza": -0.05,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Aumenta temporariamente o desempenho corporal do usuário."
+},
+{
+        "nome": "Telepatia",
+        "ID": "00011",
+        "elemento": null,
+        "raridade": "comum",
+        "chance": 0.2,
+        "descricao": "Permite comunicação mental.",
+        "passiva": "sim",
+        "ativa": "nao",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0.2,
+            "sorte": 0
+        },
+        "hab_ativa": "Transmite pensamentos diretamente para outro indivíduo."
+},
+{
+        "nome": "Comunicação por Pensamento",
+        "ID": "00012",
+        "elemento": null,
+        "raridade": "comum",
+        "chance": 0.2,
+        "descricao": "Permite transmitir pensamentos diretamente.",
+        "passiva": "sim",
+        "ativa": "nao",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0.1,
+            "sorte": 0
+        },
+        "hab_ativa": "Estabelece comunicação mental entre indivíduos."
+    }
+]

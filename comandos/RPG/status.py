@@ -392,7 +392,7 @@ class Status(commands.Cog):
     # COMANDO DESREGISTRAR
     # ==========================================
 
-    @commands.command(name="desregistrar")
+    @commands.command(name="desregistrar", aliases = ['desregist', 'dregistrar', 'dregist'])
     @commands.has_permissions(manage_roles=True)
     async def desregistrar(self, ctx, membro: discord.Member = None):
         """Desregistra um personagem (Admin)."""
@@ -482,6 +482,7 @@ class Status(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @commands.command(name='habilidades', aliases = ["habs", "skills"])
 
 # ==========================================
 # SETUP

@@ -1,0 +1,1162 @@
+[
+    {
+        "nome": "Chama Negra",
+        "ID": "00016",
+        "elemento": "trevas",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite criar e manipular chamas negras.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Cria e manipula chamas negras para fins ofensivos ou utilitários."
+    },
+    {
+        "nome": "Relâmpago Negro",
+        "ID": "00017",
+        "elemento": "trevas",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite produzir e controlar relâmpagos de natureza negra.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Produz e direciona descargas elétricas negras contra alvos."
+    },
+    {
+        "nome": "Corpo Duplo",
+        "ID": "00018",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite criar uma duplicata do próprio corpo.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Cria uma duplicata corporal capaz de auxiliar o usuário."
+    },
+    {
+        "nome": "Dominação da Terra",
+        "ID": "00019",
+        "elemento": "terra",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite exercer controle sobre a terra existente no ambiente.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Controla grandes quantidades de terra dentro do alcance da habilidade."
+    },
+    {
+        "nome": "Manipulação da Terra",
+        "ID": "00020",
+        "elemento": "terra",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manipular terra e alterar sua forma.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Move e molda terra conforme o controle do usuário."
+    },
+    {
+        "nome": "Dominação das Chamas",
+        "ID": "00021",
+        "elemento": "fogo",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite exercer controle abrangente sobre chamas.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Controla chamas dentro do alcance da habilidade."
+    },
+    {
+        "nome": "Manipulação das Chamas",
+        "ID": "00022",
+        "elemento": "fogo",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manipular chamas e modificar seu formato.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Move e molda chamas conforme a intenção do usuário."
+    },
+    {
+        "nome": "Dominação da Gravidade",
+        "ID": "00023",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite exercer controle sobre forças gravitacionais.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Altera a intensidade ou direção da gravidade em uma área controlada."
+    },
+    {
+        "nome": "Manipulação da Gravidade",
+        "ID": "00024",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manipular efeitos gravitacionais sobre objetos e indivíduos.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Modifica a força gravitacional aplicada a alvos dentro do alcance."
+    },
+    {
+        "nome": "Onda de Calor",
+        "ID": "00025",
+        "elemento": "fogo",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite liberar uma onda de calor concentrada.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Libera uma onda de calor que se propaga pelo ambiente."
+    },
+    {
+        "nome": "Dominação do Relâmpago",
+        "ID": "00026",
+        "elemento": "relampago",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite exercer controle abrangente sobre relâmpagos.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Controla descargas elétricas e direciona seus efeitos."
+    },
+    {
+        "nome": "Manipulação do Relâmpago",
+        "ID": "00027",
+        "elemento": "relampago",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manipular eletricidade e relâmpagos.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Manipula e direciona descargas elétricas."
+    },
+    {
+        "nome": "Transformação Mágica das Trevas",
+        "ID": "00028",
+        "elemento": "trevas",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite transformar energia mágica em propriedades associadas às trevas.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Transforma energia mágica em manifestações de trevas."
+    },
+    {
+        "nome": "Transformação Mágica da Terra",
+        "ID": "00029",
+        "elemento": "terra",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite transformar energia mágica em manifestações do elemento terra.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Transforma energia mágica em manifestações de terra."
+    },
+    {
+        "nome": "Transformação Mágica das Chamas",
+        "ID": "00030",
+        "elemento": "fogo",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite transformar energia mágica em manifestações de fogo.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Transforma energia mágica em manifestações de fogo."
+    },
+    {
+        "nome": "Interferência Mágica",
+        "ID": "00031",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite interferir na manifestação e funcionamento de energia mágica.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Interfere em manifestações mágicas dentro do alcance."
+    },
+    {
+        "nome": "Transformação Mágica da Luz",
+        "ID": "00032",
+        "elemento": "luz",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite transformar energia mágica em manifestações de luz.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Transforma energia mágica em manifestações de luz."
+    },
+    {
+        "nome": "Transformação Mágica do Espaço",
+        "ID": "00033",
+        "elemento": "espaco",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite transformar energia mágica em manifestações relacionadas ao espaço.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Converte energia mágica em efeitos espaciais."
+    },
+    {
+        "nome": "Transformação Mágica da Água",
+        "ID": "00034",
+        "elemento": "agua",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite transformar energia mágica em manifestações de água.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Transforma energia mágica em manifestações de água."
+    },
+    {
+        "nome": "Transformação Mágica do Vento",
+        "ID": "00035",
+        "elemento": "vento",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite transformar energia mágica em manifestações de vento.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Transforma energia mágica em manifestações de vento."
+    },
+    {
+        "nome": "Manipulação de Mana",
+        "ID": "00036",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite controlar e manipular a própria energia mágica.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Manipula mana para produzir diferentes efeitos."
+    },
+    {
+        "nome": "Manipulação Molecular",
+        "ID": "00037",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manipular a estrutura molecular da matéria dentro dos limites do usuário.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Altera ou reorganiza estruturas moleculares através do controle da energia."
+    },
+    {
+        "nome": "Barreira Multicamadas",
+        "ID": "00038",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Cria múltiplas camadas de barreiras defensivas.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Cria várias camadas defensivas sobrepostas."
+    },
+    {
+        "nome": "Movimento pelas Sombras",
+        "ID": "00039",
+        "elemento": "trevas",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite utilizar sombras como meio de movimentação.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Permite deslocar-se utilizando sombras como meio de movimento."
+    },
+    {
+        "nome": "Dominação do Som",
+        "ID": "00040",
+        "elemento": "som",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite exercer controle abrangente sobre ondas sonoras.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Controla ondas sonoras e suas propriedades."
+    },
+    {
+        "nome": "Manipulação do Som",
+        "ID": "00041",
+        "elemento": "som",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manipular ondas sonoras.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Modifica e direciona ondas sonoras."
+    },
+    {
+        "nome": "Dominação Espacial",
+        "ID": "00042",
+        "elemento": "espaco",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite exercer controle abrangente sobre o espaço.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Manipula propriedades espaciais dentro do alcance."
+    },
+    {
+        "nome": "Manipulação Espacial",
+        "ID": "00043",
+        "elemento": "espaco",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manipular propriedades do espaço.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Altera propriedades espaciais de uma área ou alvo."
+    },
+    {
+        "nome": "Movimento Espacial",
+        "ID": "00044",
+        "elemento": "espaco",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite realizar deslocamentos através da manipulação do espaço.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Permite deslocar o usuário através de uma alteração espacial."
+    },
+    {
+        "nome": "Força de Aço",
+        "ID": "00045",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite concentrar energia para aumentar a força aplicada pelo corpo.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Aumenta temporariamente a força física aplicada pelo usuário."
+    },
+    {
+        "nome": "Fio de Aço Pegajoso",
+        "ID": "00046",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Cria fios resistentes e aderentes.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Produz fios resistentes capazes de aderir a superfícies e alvos."
+    },
+    {
+        "nome": "Fortalecimento Corporal",
+        "ID": "00047",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite reforçar temporariamente o corpo através de energia.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Reforça temporariamente as capacidades físicas do corpo."
+    },
+    {
+        "nome": "Dominação da Água",
+        "ID": "00048",
+        "elemento": "agua",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite exercer controle abrangente sobre a água.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Controla grandes quantidades de água dentro do alcance."
+    },
+    {
+        "nome": "Manipulação da Água",
+        "ID": "00049",
+        "elemento": "agua",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manipular água e alterar seu movimento e formato.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Move e molda água conforme o controle do usuário."
+    },
+    {
+        "nome": "Dominação Climática",
+        "ID": "00050",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite exercer controle sobre fenômenos climáticos.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Altera condições climáticas dentro de uma área."
+    },
+    {
+        "nome": "Manipulação Climática",
+        "ID": "00051",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manipular condições e fenômenos climáticos.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Modifica condições climáticas específicas."
+    },
+    {
+        "nome": "Dominação do Vento",
+        "ID": "00052",
+        "elemento": "vento",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite exercer controle abrangente sobre o vento.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Controla correntes de vento e sua direção."
+    },
+    {
+        "nome": "Manipulação do Vento",
+        "ID": "00053",
+        "elemento": "vento",
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manipular correntes de vento.",
+        "tipo": "ativa",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": "Move e direciona correntes de vento."
+    },
+    {
+        "nome": "Olho Onividente",
+        "ID": "00054",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite perceber e observar informações de forma ampliada.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Avaliação Analítica",
+        "ID": "00055",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite analisar características, propriedades e informações de alvos e objetos.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Anulação de Canto",
+        "ID": "00056",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite utilizar habilidades mágicas sem a necessidade de realizar cantos.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Sentido de Perigo",
+        "ID": "00057",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite detectar situações ou presenças que representem perigo ao usuário.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Haki",
+        "ID": "00058",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite perceber e exercer influência através da força de vontade.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Sentido do Lobo Divino",
+        "ID": "00059",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Aprimora a capacidade de percepção sensorial do usuário.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Olho Celestial",
+        "ID": "00060",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Amplia a capacidade visual e perceptiva do usuário.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Olho da Serpente",
+        "ID": "00061",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Concede percepção visual especializada e aprimorada.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Regeneração Infinita",
+        "ID": "00062",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite regenerar continuamente danos sofridos pelo corpo.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Aura Mágica",
+        "ID": "00063",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite manifestar e perceber uma aura composta por energia mágica.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Majestade",
+        "ID": "00064",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Manifesta uma presença dominante capaz de influenciar a percepção de outros indivíduos.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Medo Mortal",
+        "ID": "00065",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Provoca uma resposta de medo intenso em indivíduos suscetíveis à presença do usuário.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Sentido Mágico",
+        "ID": "00066",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite perceber a presença e características de energia mágica.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Sentido de Fonte de Calor",
+        "ID": "00067",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite detectar fontes de calor no ambiente.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Sentido de Ondas Sonoras",
+        "ID": "00068",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite perceber e interpretar ondas sonoras no ambiente.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Aceleração do Pensamento",
+        "ID": "00069",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Aumenta a velocidade de processamento dos pensamentos do usuário.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Ultra-Instinto",
+        "ID": "00070",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite ao corpo reagir de forma instintiva a estímulos e ameaças.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Regeneração Ultrarrápida",
+        "ID": "00071",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Permite regenerar danos corporais em velocidade extremamente elevada.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Percepção Universal",
+        "ID": "00072",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Amplia a percepção do usuário para detectar e interpretar informações do ambiente em escala abrangente.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    },
+    {
+        "nome": "Sábio",
+        "ID": "00073",
+        "elemento": null,
+        "raridade": "extra",
+        "chance": 0.0,
+        "descricao": "Aprimora a capacidade de análise, raciocínio e processamento de informações do usuário.",
+        "tipo": "passiva",
+        "bonus": {
+            "forca": 0,
+            "defesa": 0,
+            "vitalidade": 0,
+            "velocidade": 0,
+            "destreza": 0,
+            "magiculas": 0,
+            "inteligencia": 0,
+            "sorte": 0
+        },
+        "hab_ativa": null
+    }
+]
