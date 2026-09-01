@@ -1,4 +1,5 @@
 import discord
+import json
 from discord.ext import commands
 from database.python.mongodb import db
 from database.python.luta import (
@@ -13,6 +14,9 @@ from database.python.luta import (
 )
 import random
 import asyncio
+
+with open('database/json/monstros.json', 'r', encoding= 'utf-8') as f:
+     rec = json.load(f)
 
 class Luta(commands.Cog):
     def __init__(self, bot):
@@ -464,121 +468,110 @@ class Luta(commands.Cog):
     # ==========================================
     # FINALIZAR
     # ==========================================
-
-    async def _finalizar(self, ctx):
-        async def _finalizar(self, ctx, embed=None):
-    """Finaliza a batalha e mostra as recompensas"""
-    if ctx.channel.id not in self.combates:
-        return
     
-    combate = self.combates[ctx.channel.id]
-    recompensas = finalizar_combate(combate)
-    
-    # Cria o embed se não foi passado
-    if embed is None:
-        embed = discord.Embed(
-            title="🏆 Batalha Finalizada!",
-            color=discord.Color.green()
-        )
-    else:
-        embed.title = "🏆 Batalha Finalizada!"
-        embed.color = discord.Color.green()
-    
-    # ==========================================
-    # STATUS FINAL DOS PARTICIPANTES
-    # ==========================================
-    texto_status = ""
-    for p in combate["participantes"]:
-        if p["tipo"] == "jogador":
-            status = "❤️ Vivo" if p["vida"] > 0 else "💀 Morto"
-            texto_status += f"👤 **{p['nome']}** - {status} ({p['vida']}/{p['vida_maxima']})\n"
+    async def _finalizar(self, ctx, embed=None):
+        xpp = rec.get("xp_recompensa")
+        hunosp = rec.get("hunos_recompensa")
+    # """Finaliza a batalha e mostra as recompensas"""
+        if ctx.channel.id not in self.combates:
+            return
+        combate = self.combates[ctx.channel.id]
+        recompensas = finalizar_combate(combate)
+        # Cria o embed se não foi passado
+        if embed is None:
+            embed = discord.Embed(
+        title="🏆 Batalha Finalizada!",
+        color=discord.Color.green())
         else:
-            status = "❤️ Vivo" if p["vida"] > 0 else "💀 Morto"
-            texto_status += f"{p['emoji']} **{p['nome']}** (Nv. {p.get('nivel', 1)}) - {status} ({p['vida']}/{p['vida_maxima']})\n"
-    
-    embed.add_field(name="📋 Status Final", value=texto_status, inline=False)
-    
-    # ==========================================
-    # RECOMPENSAS
-    # ==========================================
-    if recompensas:
-        # Busca os nomes dos monstros derrotados
-        monstros_derrotados = [p for p in combate["participantes"] if p["tipo"] == "monstro" and p["vida"] <= 0]
-        
-        texto_monstros = ""
-        for monstro in monstros_derrotados:
-            texto_monstros += f"{monstro['emoji']} {monstro['nome']} (Nv. {monstro.get('nivel', 1)})\n"
-        
-        embed.add_field(
-            name="🎁 Recompensas",
-            value=(
-                f"**XP:** +{recompensas['xp']}\n"
-                f"**Hunos:** +{recompensas['hunos']}\n\n"
-                f"**Monstros Derrotados:**\n{texto_monstros if texto_monstros else 'Nenhum'}"
-            ),
-            inline=False
-        )
-        
-        # Adiciona um campo com o total de ganhos
-        total_ganhos = recompensas['xp'] + recompensas['hunos']
-        embed.add_field(
-            name="📊 Total de Ganhos",
-            value=f"**{total_ganhos}** pontos combinados (XP + Hunos)",
-            inline=False
-        )
-        
-    else:
-        # Verifica se todos os jogadores morreram
-        jogadores_vivos = [p for p in combate["participantes"] if p["tipo"] == "jogador" and p["vida"] > 0]
-        if not jogadores_vivos:
+            embed.title = "🏆 Batalha Finalizada!"
+            embed.color = discord.Color.green()
+        # ==========================================
+        # STATUS FINAL DOS PARTICIPANTES
+        # ==========================================
+        texto_status = ""
+        for p in combate["participantes"]:
+            if p["tipo"] == "jogador":
+                status = "❤️ Vivo" if p["vida"] > 0 else "💀 Morto"
+                texto_status += f"👤 **{p['nome']}** - {status} ({p['vida']}/{p['vida_maxima']})\n"
+            else:
+                status = "❤️ Vivo" if p["vida"] > 0 else "💀 Morto"
+                texto_status += f"{p['emoji']} **{p['nome']}** (Nv. {p.get('nivel', 1)}) - {status} ({p['vida']}/{p['vida_maxima']})\n"
+        embed.add_field(name="📋 Status Final", value=texto_status, inline=False)
+        # ==========================================
+        # RECOMPENSAS
+        # ==========================================
+        if recompensas:
+            # Busca os nomes dos monstros derrotados
+            monstros_derrotados = [p for p in combate["participantes"] if p["tipo"] == "monstro" and p["vida"] <= 0]
+            texto_monstros = ""
+            for monstro in monstros_derrotados:
+                texto_monstros += f"{monstro['emoji']} {monstro['nome']} (Nv. {monstro.get('nivel', 1)})\n"
             embed.add_field(
-                name="💀 Fim da Jornada",
-                value="Todos os jogadores foram derrotados!",
-                inline=False
-            )
-        else:
-            embed.add_field(
-                name="⚠️ Sem Recompensas",
-                value="Nenhum monstro foi derrotado.",
-                inline=False
-            )
-    
-    # ==========================================
-    # HISTÓRICO DA BATALHA
-    # ==========================================
-    if combate.get("historico"):
-        historico_texto = "\n".join(combate["historico"][-5:])
-        embed.add_field(
-            name="📜 Últimas Ações",
-            value=historico_texto if historico_texto else "Nenhuma ação registrada.",
-            inline=False
-        )
-    
-    # ==========================================
-    # ESTATÍSTICAS DA BATALHA
-    # ==========================================
-    total_rodadas = combate.get("rodada", 0) + 1
-    total_acoes = len(combate.get("historico", []))
-    
-    embed.add_field(
-        name="📊 Estatísticas da Batalha",
-        value=(
-            f"**Rodadas:** {total_rodadas}\n"
-            f"**Ações:** {total_acoes}\n"
-            f"**Participantes:** {len(combate['participantes'])}"
+                name="🎁 Recompensas",
+                value=(
+            f"**XP:** +{xpp}\n"
+            f"**Hunos:** +{hunosp}\n\n"
+            f"**Monstros Derrotados:**\n{texto_monstros if texto_monstros else 'Nenhum'}"
         ),
+        inline=False)
+            # Adiciona um campo com o total de ganhos
+            total_ganhos = recompensas['xp'] + recompensas['hunos']
+            embed.add_field(
+        name="📊 Total de Ganhos",
+        value=f"**{total_ganhos}** pontos combinados (XP + Hunos)",
         inline=False
-    )
+    )    
+        else:
+            # Verifica se todos os jogadores morreram
+            jogadores_vivos = [p for p in combate["participantes"] if p["tipo"] == "jogador" and p["vida"] > 0]
+            if not jogadores_vivos:
+                embed.add_field(
+            name="💀 Fim da Jornada",
+            value="Todos os jogadores foram derrotados!",
+            inline=False
+        )
+            else:
+                embed.add_field(
+            name="⚠️ Sem Recompensas",
+            value="Nenhum monstro foi derrotado.",
+            inline=False
+        )
+
+        # ==========================================
+        # HISTÓRICO DA BATALHA
+        # ==========================================
+        if combate.get("historico"):
+            historico_texto = "\n".join(combate["historico"][-5:])
+            embed.add_field(
+        name="📜 Últimas Ações",
+        value=historico_texto if historico_texto else "Nenhuma ação registrada.",
+        inline=False
+                        )
+        # ==========================================
+        # ESTATÍSTICAS DA BATALHA
+        # ==========================================
+        total_rodadas = combate.get("rodada", 0) + 1
+        total_acoes = len(combate.get("historico", []))
     
-    # ==========================================
-    # RODAPÉ
-    # ==========================================
-    embed.set_footer(text="Moon Tensura • Korczak Technologies")
-    
-    # Remove o combate da memória
-    del self.combates[ctx.channel.id]
-    
-    await ctx.send(embed=embed)
+        embed.add_field(
+    name="📊 Estatísticas da Batalha",
+    value=(
+        f"**Rodadas:** {total_rodadas}\n"
+        f"**Ações:** {total_acoes}\n"
+        f"**Participantes:** {len(combate['participantes'])}"
+    ),
+    inline=False
+)
+    #
+    ## ==========================================
+    ## RODAPÉ
+    ## ==========================================
+        embed.set_footer(text="Moon Tensura • Korczak Technologies")
+
+        # Remove o combate da memória
+        del self.combates[ctx.channel.id]
+
+        await ctx.send(embed=embed)
 
     # ==========================================
     # COMANDO RESETAR LUTA
