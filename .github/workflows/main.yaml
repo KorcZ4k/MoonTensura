@@ -15,7 +15,7 @@ jobs:
 
       - name: Executar script
         run: |
-          echo "Executando com o código mais recente do repositório..."
+          python main.py
 env:
         DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         MONGODB_URI: ${{ secrets.MONGODB_URI }}
