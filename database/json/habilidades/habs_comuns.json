@@ -1,7 +1,5 @@
 [
-
-
-{
+ {
     "nome": "Coerção",
     "ID": "00001",
     "elemento": null,
@@ -43,8 +41,7 @@
         "sorte": 0
     },
     "hab_ativa": "Provoca corrosão em alvos."
-}
-
+},
 {
     "nome": "Visão Distante",
     "ID": "00003",
@@ -65,7 +62,7 @@
         "sorte": 0
     },
     "hab_ativa": "Te dá o direito de enxergar alvos a longa distancia"
-}
+},
 {
     "nome": "Voo gravitacional",
     "ID": "00004",
@@ -130,7 +127,7 @@
         "sorte": 0
     },
     "hab_ativa": "Provoca paralisia em alvos."
-}
+},
 
 {
     "nome": "Veneno",
@@ -152,7 +149,7 @@
         "sorte": 0
     },
     "hab_ativa": "Provoca veneno em alvos, causando dano ao longo do tempo."
-}
+},
 {
     "nome": "Barreira à Distância",
     "ID": "00008",
@@ -173,7 +170,7 @@
         "sorte": 0
     },
     "hab_ativa": "Permite criar e assimilar uma barreira à longa distancia."
-}
+},
 {
         "nome": "Autorreconstituição",
         "ID": "00009",

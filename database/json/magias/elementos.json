@@ -1,0 +1,64 @@
+{
+  "elementos": [
+    {
+      "nome": "Fogo",
+      "emoji": "🔥",
+      "cor": 15158332,
+      "descricao": "Magias de fogo causam dano em área e queimadura"
+    },
+    {
+      "nome": "Água",
+      "emoji": "💧",
+      "cor": 3447003,
+      "descricao": "Magias de água curam e causam dano com pressão"
+    },
+    {
+      "nome": "Terra",
+      "emoji": "🪨",
+      "cor": 9139508,
+      "descricao": "Magias de terra oferecem defesa e controle"
+    },
+    {
+      "nome": "Vento",
+      "emoji": "💨",
+      "cor": 11064810,
+      "descricao": "Magias de vento são rápidas e cortantes"
+    },
+    {
+      "nome": "Raio",
+      "emoji": "⚡",
+      "cor": 15844367,
+      "descricao": "Magias de raio são precisas e paralisantes"
+    },
+    {
+      "nome": "Luz",
+      "emoji": "✨",
+      "cor": 15970322,
+      "descricao": "Magias de luz curam e purificam"
+    },
+    {
+      "nome": "Trevas",
+      "emoji": "🌑",
+      "cor": 2894892,
+      "descricao": "Magias de trevas corrompem e enfraquecem"
+    },
+    {
+      "nome": "Gelo",
+      "emoji": "❄️",
+      "cor": 8760573,
+      "descricao": "Magias de gelo congelam e controlam"
+    },
+    {
+      "nome": "Natureza",
+      "emoji": "🌿",
+      "cor": 2591571,
+      "descricao": "Magias de natureza curam e controlam a vida"
+    },
+    {
+      "nome": "Vazio",
+      "emoji": "🌀",
+      "cor": 9324621,
+      "descricao": "Magias de vazio distorcem a realidade"
+    }
+  ]
+}

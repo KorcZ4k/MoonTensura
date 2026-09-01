@@ -43,12 +43,13 @@ def cadastro(membros):
                         "Raça": None,
                         "Nivel": 1,
                         "XP": 0,
+                        "XP_maximo": 100,
                         "Vida": 100,
                         "Vida_Maxima": 100,
                         "Vitalidade": 0,
                         "Mana": 100,
                         "Mana Total": 100,
-                        "Ma"
+                        "Magiculas": 0,
                         "Força": 0,
                         "Defesa": 0,
                         "Velocidade": 0,
@@ -116,6 +117,7 @@ def cadastro(membros):
                         "ID": user_id,
                         "guild_id": guild_id,
                         "Situação": "pendente",
+                        "tipos": [],
                         "magias": []
                     }
                 },

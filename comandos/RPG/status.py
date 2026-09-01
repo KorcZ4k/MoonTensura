@@ -11,7 +11,7 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 
-from comandos.RPG.barra_status import barra_mana, barra_vida
+from comandos.RPG.barra_status import barra_mana, barra_vida, barra_xp
 from database.python.mongodb import db
 from database.python.status import obter_status
 
@@ -125,6 +125,7 @@ class Status(commands.Cog):
         raca = jogador.get("Raça", "Não definida")
         nivel = jogador.get("Nivel", 0)
         xp = jogador.get("XP", 0)
+        xp_max = jogador.get("XP_maximo", 0)
         forca = jogador.get("Força", 0)
         defesa = jogador.get("Defesa", 0)
         velocidade = jogador.get("Velocidade", 0)
@@ -151,15 +152,18 @@ class Status(commands.Cog):
                 f"**Nome:** {nome}\n"
                 f"**Raça:** {raca}\n"
                 f"**Nível:** {nivel}\n"
-                f"**XP:** {xp}"
             ),
             inline=False
         )
-
+        embed.add_field(
+            name= ":star: XP",
+            value = f'{barra_xp(xp, xp_max)}\n**{xp}/{xp_max}**',
+            inline=False
+        )
         embed.add_field(
             name="❤️ Vida",
             value=(
-                f"`{barra_vida(vida, vida_maxima)}`\n"
+                f"{barra_vida(vida, vida_maxima)}\n"
                 f"**{vida}/{vida_maxima}**"
             ),
             inline=False
@@ -168,7 +172,7 @@ class Status(commands.Cog):
         embed.add_field(
             name="💧 Mana",
             value=(
-                f"`{barra_mana(mana, mana_maxima)}`\n"
+                f"{barra_mana(mana, mana_maxima)}\n"
                 f"**{mana}/{mana_maxima}**"
             ),
             inline=False
@@ -194,7 +198,7 @@ class Status(commands.Cog):
 
         embed.set_footer(text="Tensura Moon - Korczak Technologies!")
         embed.set_image(
-            url='https://discord.com/channels/1543039757146136586/1543040901251596288/1543768808664080465'
+            url='https://media.discordapp.net/attachments/1543063886939299962/1543811582537105478/ChatGPT_Image_29_de_ago._de_2026_18_39_01.png?ex=6a96e2d3&is=6a959153&hm=400fd5cd195a8a13aa97386a0208a39b675b93e657b1b1afeeba08a4533cc335&=&format=webp&quality=lossless&width=1280&height=511'
         )
 
         await ctx.send(embed=embed)

@@ -24,3 +24,10 @@ def barra_mana(mana, mana_maxima):
         mana_maxima,
         bloco="🟦"
     )
+
+def barra_xp(xp, xp_maximo):
+    return barra_status(
+        xp,
+        xp_maximo,
+        bloco="🟨"
+    )
