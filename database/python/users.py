@@ -42,6 +42,7 @@ def cadastro(membros):
                         "Nome": None,
                         "Raça": None,
                         "Nivel": 1,
+                        "inteligencia": 0,
                         "XP": 0,
                         "XP_maximo": 100,
                         "Vida": 100,

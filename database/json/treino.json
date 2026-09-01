@@ -1,0 +1,48 @@
+{
+  "treinos": {
+    "leve": {
+      "nome": "Treino Leve",
+      "emoji": "🏃",
+      "nivel_minimo": 1,
+      "cooldown_horas": 12,
+      "min_aumento": 0.1,
+      "max_aumento": 0.25,
+      "descricao": "Um treino básico para iniciantes"
+    },
+    "medio": {
+      "nome": "Treino Médio",
+      "emoji": "💪",
+      "nivel_minimo": 10,
+      "cooldown_horas": 15,
+      "min_aumento": 0.2,
+      "max_aumento": 0.4,
+      "descricao": "Um treino moderado para aventureiros experientes"
+    },
+    "pesado": {
+      "nome": "Treino Pesado",
+      "emoji": "🏋️",
+      "nivel_minimo": 20,
+      "cooldown_horas": 20,
+      "min_aumento": 0.4,
+      "max_aumento": 0.6,
+      "descricao": "Um treino intenso para guerreiros veteranos"
+    },
+    "supremo": {
+      "nome": "Treino Supremo",
+      "emoji": "🔥",
+      "nivel_minimo": 50,
+      "cooldown_horas": 24,
+      "min_aumento": 0.7,
+      "max_aumento": 0.7,
+      "descricao": "O treino definitivo para lendas vivas"
+    }
+  },
+  "atributos": [
+    "Força",
+    "Defesa",
+    "Velocidade",
+    "Destreza",
+    "Magia",
+    "Sorte"
+  ]
+}

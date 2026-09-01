@@ -1,0 +1,193 @@
+{
+  "monstros": {
+    "slime": {
+      "nome": "Slime",
+      "emoji": "🟢",
+      "vida": 50,
+      "atributos": {
+        "Força": 5,
+        "Defesa": 2,
+        "Velocidade": 10,
+        "Destreza": 5,
+        "Vitalidade": 5,
+        "Magia": 3,
+        "Inteligencia": 2,
+        "Sorte": 5
+      },
+      "dano_base": 5,
+      "defesa": 2,
+      "velocidade": 10,
+      "xp_recompensa": 20,
+      "hunos_recompensa": 10,
+      "nivel_minimo": 1
+    },
+    "goblin": {
+      "nome": "Goblin",
+      "emoji": "👺",
+      "vida": 80,
+      "atributos": {
+        "Força": 10,
+        "Defesa": 5,
+        "Velocidade": 30,
+        "Destreza": 15,
+        "Vitalidade": 8,
+        "Magia": 5,
+        "Inteligencia": 8,
+        "Sorte": 10
+      },
+      "dano_base": 10,
+      "defesa": 5,
+      "velocidade": 30,
+      "xp_recompensa": 40,
+      "hunos_recompensa": 25,
+      "nivel_minimo": 2
+    },
+    "lobo": {
+      "nome": "Lobo",
+      "emoji": "🐺",
+      "vida": 100,
+      "atributos": {
+        "Força": 15,
+        "Defesa": 8,
+        "Velocidade": 50,
+        "Destreza": 25,
+        "Vitalidade": 10,
+        "Magia": 5,
+        "Inteligencia": 6,
+        "Sorte": 12
+      },
+      "dano_base": 15,
+      "defesa": 8,
+      "velocidade": 50,
+      "xp_recompensa": 60,
+      "hunos_recompensa": 40,
+      "nivel_minimo": 4
+    },
+    "orc": {
+      "nome": "Orc",
+      "emoji": "👹",
+      "vida": 150,
+      "atributos": {
+        "Força": 30,
+        "Defesa": 15,
+        "Velocidade": 25,
+        "Destreza": 12,
+        "Vitalidade": 20,
+        "Magia": 5,
+        "Inteligencia": 5,
+        "Sorte": 8
+      },
+      "dano_base": 20,
+      "defesa": 15,
+      "velocidade": 25,
+      "xp_recompensa": 80,
+      "hunos_recompensa": 60,
+      "nivel_minimo": 6
+    },
+    "esqueleto": {
+      "nome": "Esqueleto",
+      "emoji": "💀",
+      "vida": 120,
+      "atributos": {
+        "Força": 18,
+        "Defesa": 10,
+        "Velocidade": 35,
+        "Destreza": 20,
+        "Vitalidade": 12,
+        "Magia": 15,
+        "Inteligencia": 10,
+        "Sorte": 5
+      },
+      "dano_base": 18,
+      "defesa": 10,
+      "velocidade": 35,
+      "xp_recompensa": 70,
+      "hunos_recompensa": 50,
+      "nivel_minimo": 5
+    },
+    "drago": {
+      "nome": "Dragão",
+      "emoji": "🐉",
+      "vida": 500,
+      "atributos": {
+        "Força": 50,
+        "Defesa": 30,
+        "Velocidade": 20,
+        "Destreza": 15,
+        "Vitalidade": 40,
+        "Magia": 35,
+        "Inteligencia": 20,
+        "Sorte": 15
+      },
+      "dano_base": 40,
+      "defesa": 30,
+      "velocidade": 20,
+      "xp_recompensa": 300,
+      "hunos_recompensa": 200,
+      "nivel_minimo": 15
+    },
+    "demonio": {
+      "nome": "Demônio",
+      "emoji": "😈",
+      "vida": 400,
+      "atributos": {
+        "Força": 35,
+        "Defesa": 25,
+        "Velocidade": 45,
+        "Destreza": 30,
+        "Vitalidade": 30,
+        "Magia": 40,
+        "Inteligencia": 25,
+        "Sorte": 10
+      },
+      "dano_base": 35,
+      "defesa": 25,
+      "velocidade": 45,
+      "xp_recompensa": 250,
+      "hunos_recompensa": 150,
+      "nivel_minimo": 12
+    },
+    "titan": {
+      "nome": "Titã",
+      "emoji": "🗿",
+      "vida": 800,
+      "atributos": {
+        "Força": 60,
+        "Defesa": 50,
+        "Velocidade": 10,
+        "Destreza": 8,
+        "Vitalidade": 60,
+        "Magia": 10,
+        "Inteligencia": 8,
+        "Sorte": 5
+      },
+      "dano_base": 50,
+      "defesa": 50,
+      "velocidade": 10,
+      "xp_recompensa": 500,
+      "hunos_recompensa": 350,
+      "nivel_minimo": 20
+    },
+    "fenix": {
+      "nome": "Fênix",
+      "emoji": "🔥",
+      "vida": 300,
+      "atributos": {
+        "Força": 20,
+        "Defesa": 15,
+        "Velocidade": 60,
+        "Destreza": 40,
+        "Vitalidade": 25,
+        "Magia": 50,
+        "Inteligencia": 30,
+        "Sorte": 20
+      },
+      "dano_base": 30,
+      "defesa": 15,
+      "velocidade": 60,
+      "xp_recompensa": 200,
+      "hunos_recompensa": 120,
+      "nivel_minimo": 10
+    }
+  }
+}

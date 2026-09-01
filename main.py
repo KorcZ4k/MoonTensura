@@ -7,6 +7,10 @@ import discord
 from database.python.users import cadastro
 from dotenv import load_dotenv
 from discord.ext import commands
+from database.python.mongodb import db
+from database.python.Hunos import init_db_hunos
+
+init_db_hunos(db)  # Inicializa o db_hunos global
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -78,6 +82,10 @@ async def on_ready():
         )
 
 async def carregar_extensoes():
+    await bot.load_extension("comandos.RPG.luta")
+    await bot.load_extension("comandos.RPG.treino")
+    await bot.load_extension("comandos.ECONOMIA.cassino")
+    await bot.load_extension("comandos.ECONOMIA.loja")
     await bot.load_extension("comandos.RPG.magias")
     await bot.load_extension("comandos.ADMINISTRACAO.autorole_commands")
     await bot.load_extension("comandos.RPG.habs")

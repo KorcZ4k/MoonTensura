@@ -1,0 +1,76 @@
+{
+  "golpes": {
+    "soco": {
+      "nome": "Soco",
+      "emoji": "👊",
+      "atributos": ["Força", "Destreza"],
+      "multiplicador": 0.5,
+      "custo_mana": 0,
+      "descricao": "Um soco básico",
+      "tipo": "fisico"
+    },
+    "chute": {
+      "nome": "Chute",
+      "emoji": "🦶",
+      "atributos": ["Força", "Destreza", "Velocidade"],
+      "multiplicador": 0.6,
+      "custo_mana": 0,
+      "descricao": "Um chute poderoso",
+      "tipo": "fisico"
+    },
+    "golpe_pesado": {
+      "nome": "Golpe Pesado",
+      "emoji": "💥",
+      "atributos": ["Força", "Vitalidade"],
+      "multiplicador": 0.8,
+      "custo_mana": 10,
+      "descricao": "Um golpe que consome mana para causar mais dano",
+      "tipo": "fisico"
+    },
+    "golpe_rapido": {
+      "nome": "Golpe Rápido",
+      "emoji": "⚡",
+      "atributos": ["Destreza", "Velocidade"],
+      "multiplicador": 0.3,
+      "custo_mana": 5,
+      "descricao": "Um golpe rápido que custa pouca mana",
+      "tipo": "fisico"
+    },
+    "defesa": {
+      "nome": "Defesa",
+      "emoji": "🛡️",
+      "atributos": ["Defesa", "Vitalidade"],
+      "multiplicador": 0,
+      "custo_mana": 0,
+      "descricao": "Se defende do próximo ataque, reduzindo o dano em 50%",
+      "tipo": "defesa"
+    },
+    "esquiva": {
+      "nome": "Esquiva",
+      "emoji": "💨",
+      "atributos": ["Destreza", "Velocidade"],
+      "multiplicador": 0,
+      "custo_mana": 5,
+      "descricao": "Tenta desviar do próximo ataque (40% de chance)",
+      "tipo": "defesa"
+    },
+    "golpe_magico": {
+      "nome": "Golpe Mágico",
+      "emoji": "✨",
+      "atributos": ["Magia", "Inteligencia"],
+      "multiplicador": 0.7,
+      "custo_mana": 15,
+      "descricao": "Um golpe que usa magia para causar dano",
+      "tipo": "magico"
+    },
+    "golpe_supremo": {
+      "nome": "Golpe Supremo",
+      "emoji": "🔥",
+      "atributos": ["Força", "Magia", "Velocidade"],
+      "multiplicador": 1.2,
+      "custo_mana": 30,
+      "descricao": "O golpe definitivo! Consome muita mana",
+      "tipo": "magico"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "humanas": [
+    "{nome} caiu em batalha! Que descanse em paz.",
+    "{nome} foi derrotado! Sua jornada chegou ao fim.",
+    "{nome} sucumbiu aos ferimentos. O fim de um guerreiro.",
+    "{nome} encontrou seu destino final.",
+    "{nome} foi ao encontro dos deuses.",
+    "A alma de {nome} partiu para o além.",
+    "{nome} morreu como viveu: lutando.",
+    "O corpo de {nome} caiu, mas sua lenda continua."
+  ],
+  "monstros": [
+    "O monstro {nome} foi derrotado!",
+    "{nome} rugiu pela última vez.",
+    "A besta {nome} caiu em combate.",
+    "O guardião {nome} foi abatido.",
+    "O dragão {nome} finalmente tombou."
+  ],
+  "animados": [
+    "Oh não! {nome} morreu!",
+    "RIP {nome}. Você fará falta!",
+    "{nome} foi de base...",
+    "{nome} bateu as botas!",
+    "{nome} foi de arrasta pra cima!",
+    "O sistema de {nome} foi desligado permanentemente.",
+    "{nome} foi pro saco!",
+    "{nome} descansou em paz... ou não."
+  ]
+}
