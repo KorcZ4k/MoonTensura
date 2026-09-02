@@ -3,15 +3,17 @@
     {
       "id": "bola",
       "nome": "Bola",
-      "descricao": "Uma bola concentrada de energia elemental",
+      "descricao": "Uma esfera concentrada de energia elemental.",
       "tipos": ["dano", "projetil"],
       "mana_base": 10,
       "dano_base": 15,
+      "cura_base": 0,
+      "defesa_base": 0,
       "alcance": "Médio",
       "alvo": "Único",
       "efeito": {
         "nome": "Dano",
-        "descricao": "Causa dano direto",
+        "descricao": "Causa dano direto ao alvo.",
         "turnos": 1,
         "valor": 15
       }
@@ -19,15 +21,17 @@
     {
       "id": "raio",
       "nome": "Raio",
-      "descricao": "Um raio de energia elemental",
+      "descricao": "Um raio concentrado de energia elemental.",
       "tipos": ["dano", "controle", "linha"],
       "mana_base": 18,
       "dano_base": 30,
+      "cura_base": 0,
+      "defesa_base": 0,
       "alcance": "Longo",
       "alvo": "Linha",
       "efeito": {
         "nome": "Paralisia",
-        "descricao": "Paralisa o alvo",
+        "descricao": "Pode paralisar o alvo.",
         "turnos": 2,
         "valor": 0
       }
@@ -35,31 +39,35 @@
     {
       "id": "barreira",
       "nome": "Barreira",
-      "descricao": "Uma barreira protetora elemental",
+      "descricao": "Uma barreira protetora formada por energia elemental.",
       "tipos": ["defesa", "protecao"],
       "mana_base": 25,
       "dano_base": 0,
+      "cura_base": 0,
+      "defesa_base": 25,
       "alcance": "Curto",
       "alvo": "Defesa",
       "efeito": {
-        "nome": "Defesa",
-        "descricao": "Cria uma barreira protetora",
+        "nome": "Barreira",
+        "descricao": "Cria uma proteção temporária.",
         "turnos": 3,
-        "valor": 0
+        "valor": 25
       }
     },
     {
       "id": "prisao",
       "nome": "Prisão",
-      "descricao": "Prende o alvo com energia elemental",
+      "descricao": "Prende o alvo utilizando energia elemental.",
       "tipos": ["controle", "prisao"],
       "mana_base": 25,
       "dano_base": 0,
+      "cura_base": 0,
+      "defesa_base": 0,
       "alcance": "Médio",
       "alvo": "Único",
       "efeito": {
         "nome": "Prisão",
-        "descricao": "Prende o alvo",
+        "descricao": "Impede temporariamente os movimentos ou ações do alvo.",
         "turnos": 3,
         "valor": 0
       }
@@ -67,31 +75,35 @@
     {
       "id": "cura",
       "nome": "Cura",
-      "descricao": "Cura o alvo com energia elemental",
+      "descricao": "Restaura a vida do alvo utilizando energia elemental.",
       "tipos": ["cura", "suporte"],
       "mana_base": 15,
-      "dano_base": -20,
+      "dano_base": 0,
+      "cura_base": 20,
+      "defesa_base": 0,
       "alcance": "Médio",
       "alvo": "Único",
       "efeito": {
         "nome": "Cura",
-        "descricao": "Recupera vida do alvo",
+        "descricao": "Recupera pontos de vida.",
         "turnos": 1,
-        "valor": -20
+        "valor": 20
       }
     },
     {
       "id": "explosao",
       "nome": "Explosão",
-      "descricao": "Uma explosão massiva de energia",
+      "descricao": "Uma grande explosão de energia elemental.",
       "tipos": ["dano", "area", "destruicao"],
       "mana_base": 40,
       "dano_base": 60,
+      "cura_base": 0,
+      "defesa_base": 0,
       "alcance": "Médio",
       "alvo": "Área Grande",
       "efeito": {
         "nome": "Explosão",
-        "descricao": "Causa dano massivo em área",
+        "descricao": "Causa dano em uma área ampla.",
         "turnos": 1,
         "valor": 60
       }

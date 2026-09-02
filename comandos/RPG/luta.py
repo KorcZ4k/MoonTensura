@@ -1,710 +1,1412 @@
 import discord
-import json
+import random
+import asyncio
+
 from discord.ext import commands
+
 from database.python.mongodb import db
 from database.python.luta import (
-    GOLPES,
     MONSTROS,
-    obter_jogador,
     pode_lutar,
     criar_participante_jogador,
     criar_monstro,
     calcular_dano,
-    finalizar_combate
+    finalizar_combate,
+    obter_vencedores
 )
-import random
-import asyncio
 
-with open('database/json/monstros.json', 'r', encoding= 'utf-8') as f:
-     rec = json.load(f)
 
 class Luta(commands.Cog):
+
     def __init__(self, bot):
         self.bot = bot
+
+        # Combates ativos por canal
         self.combates = {}
 
-    @commands.group(name="luta", aliases=["fight"], invoke_without_command=True)
+        # Desafios PvP pendentes
+        self.desafios = {}
+
+
+    # ==========================================
+    # COMANDO PRINCIPAL
+    # ==========================================
+
+    @commands.group(
+        name="luta",
+        aliases=["fight"],
+        invoke_without_command=True
+    )
     async def luta(self, ctx):
+
         embed = discord.Embed(
             title="⚔️ Sistema de Luta",
             color=discord.Color.red()
         )
+
         embed.add_field(
-            name="📋 Comandos",
+            name="📋 PvE",
             value=(
-                "`!luta pve <monstro>` - Lutar\n"
-                "`!luta monstros` - Ver monstros\n"
-                "`!soco` - Soco\n"
-                "`!chute` - Chute\n"
-                "`!defesa` - Defender\n"
-                "`!esquiva` - Esquivar\n"
-                "`!fugir` - Fugir\n"
-                "`!rluta` - Resetar situação de combate"
+                "`!luta pve <monstro>` - Lutar contra monstro\n"
+                "`!luta monstros` - Ver monstros"
             ),
             inline=False
         )
+
+        embed.add_field(
+            name="⚔️ PvP",
+            value=(
+                "`!luta pvp @jogador` - Desafiar jogador\n"
+                "`!luta aceitar` - Aceitar desafio\n"
+                "`!luta recusar` - Recusar desafio"
+            ),
+            inline=False
+        )
+
+        embed.add_field(
+            name="🥊 Combate",
+            value=(
+                "`!soco` - Atacar\n"
+                "`!chute` - Atacar\n"
+                "`!defesa` - Defender\n"
+                "`!esquiva` - Tentar esquivar\n"
+                "`!fugir` - Fugir do PvE\n"
+                "`!rluta` - Resetar combate"
+            ),
+            inline=False
+        )
+
+        embed.add_field(
+            name="🔄 Sistema de Turnos",
+            value=(
+                "**1.** Um participante ataca\n"
+                "**2.** O defensor escolhe Defesa ou Esquiva\n"
+                "**3.** O ataque é resolvido\n"
+                "**4.** O defensor se torna o próximo atacante"
+            ),
+            inline=False
+        )
+
         await ctx.send(embed=embed)
+
+
+    # ==========================================
+    # LISTAR MONSTROS
+    # ==========================================
 
     @luta.command(name="monstros")
     async def luta_monstros(self, ctx):
-        embed = discord.Embed(title="🐉 Monstros", color=discord.Color.dark_red())
+
+        if not MONSTROS:
+            await ctx.send(
+                "❌ Nenhum monstro foi carregado."
+            )
+            return
+
+        embed = discord.Embed(
+            title="🐉 Monstros",
+            color=discord.Color.dark_red()
+        )
+
         for id_monstro, dados in list(MONSTROS.items())[:10]:
+
             embed.add_field(
-                name=f"{dados['emoji']} {dados['nome']}",
+                name=(
+                    f"{dados.get('emoji', '👹')} "
+                    f"{dados.get('nome', id_monstro)}"
+                ),
                 value=(
-                    f"**Vida:** {dados['vida_base']}\n"
-                    f"**Dano:** {dados['dano_base']}\n"
-                    f"**XP:** {dados['xp_recompensa']}\n"
-                    f"**Hunos:** {dados['hunos_recompensa']}"
+                    f"**Vida:** {dados.get('vida_base', 0)}\n"
+                    f"**Dano:** {dados.get('dano_base', 0)}\n"
+                    f"**XP:** {dados.get('xp_recompensa', 0)}\n"
+                    f"**Hunos:** {dados.get('hunos_recompensa', 0)}"
                 ),
                 inline=True
             )
+
         await ctx.send(embed=embed)
+
+
+    # ==========================================
+    # INICIAR PVE
+    # ==========================================
 
     @luta.command(name="pve")
-    async def luta_pve(self, ctx, monstro_tipo: str):
-        """Inicia luta contra um monstro - VERSÃO SIMPLIFICADA"""
-        try:
-            # Verifica se o monstro existe
-            if monstro_tipo not in MONSTROS:
-                await ctx.send(f"❌ Monstro `{monstro_tipo}` não encontrado.")
+    async def luta_pve(
+        self,
+        ctx,
+        monstro_tipo: str
+    ):
+
+        if ctx.channel.id in self.combates:
+
+            combate = self.combates[ctx.channel.id]
+
+            if combate.get("ativo", False):
+                await ctx.send(
+                    "❌ Já existe uma batalha ativa neste canal."
+                )
                 return
-            
-            # Verifica se já tem batalha
-            if ctx.channel.id in self.combates:
-                await ctx.send("❌ Já há uma batalha ativa neste canal.")
-                return
-            
-            # Verifica se pode lutar
-            verificacao = pode_lutar(str(ctx.author.id), str(ctx.guild.id))
-            if not verificacao["pode"]:
-                await ctx.send(f"❌ {verificacao['mensagem']}")
-                return
-            
-            # Pega os dados do jogador DIRETAMENTE do MongoDB
-            jogador_data = db["Jogadores"].find_one({
+
+        if monstro_tipo not in MONSTROS:
+            await ctx.send(
+                f"❌ Monstro `{monstro_tipo}` não encontrado."
+            )
+            return
+
+        verificacao = pode_lutar(
+            str(ctx.author.id),
+            str(ctx.guild.id)
+        )
+
+        if not verificacao.get("pode", False):
+            await ctx.send(
+                verificacao.get(
+                    "mensagem",
+                    "❌ Você não pode lutar."
+                )
+            )
+            return
+
+        jogador = criar_participante_jogador(
+            str(ctx.author.id),
+            str(ctx.guild.id)
+        )
+
+        if not jogador:
+            await ctx.send(
+                "❌ Você não está registrado."
+            )
+            return
+
+        jogador["nome"] = (
+            jogador.get("nome")
+            or ctx.author.display_name
+        )
+
+        monstro = criar_monstro(
+            monstro_tipo,
+            1
+        )
+
+        if not monstro:
+            await ctx.send(
+                "❌ Não foi possível criar esse monstro."
+            )
+            return
+
+        participantes = [
+            jogador,
+            monstro
+        ]
+
+        participantes.sort(
+            key=lambda participante:
+                participante.get("velocidade", 0),
+            reverse=True
+        )
+
+        atacante = participantes[0]
+        defensor = participantes[1]
+
+        self.combates[ctx.channel.id] = {
+            "participantes": participantes,
+            "turno": 0,
+            "numero_turno": 1,
+            "fase": "ataque",
+            "ativo": True,
+            "guild_id": str(ctx.guild.id),
+            "pvp": False,
+            "historico": [],
+            "ataque_pendente": None
+        }
+
+        db["Jogadores"].update_one(
+            {
                 "ID": str(ctx.author.id),
                 "guild_id": str(ctx.guild.id)
-            })
-            
-            if not jogador_data:
-                await ctx.send("❌ Você não está registrado.")
-                return
-            
-            # Cria o participante jogador MANUALMENTE
-            forca = jogador_data.get("Força", 10)
-            defesa = jogador_data.get("Defesa", 10)
-            defesa_total = (forca + defesa) * 2
-            
-            jogador = {
-                "id": str(ctx.author.id),
-                "nome": jogador_data.get("Nome", ctx.author.display_name),
-                "tipo": "jogador",
-                "vida": jogador_data.get("Vida", 100),
-                "vida_maxima": jogador_data.get("Vida_Maxima", 100),
-                "mana": jogador_data.get("Mana", 50),
-                "velocidade": jogador_data.get("Velocidade", 50),
-                "defesa": defesa_total,
-                "Força": forca,
-                "Destreza": jogador_data.get("Destreza", 10),
-                "defesa_ativa": False,
-                "esquiva_ativa": False
+            },
+            {
+                "$set": {
+                    "Situação": "ativo_combate"
+                }
             }
-            
-            # Cria o monstro
-            monstro = criar_monstro(monstro_tipo, 1)
-            if not monstro:
-                await ctx.send(f"❌ Erro ao criar monstro.")
-                return
-            
-            # Ordena por velocidade
-            participantes = [jogador, monstro]
-            participantes.sort(key=lambda x: x.get("velocidade", 0), reverse=True)
-            
-            # Salva o combate
-            self.combates[ctx.channel.id] = {
-                "participantes": participantes,
-                "turno": 0,
-                "ativo": True,
-                "guild_id": str(ctx.guild.id),
-                "pvp": False,
-                "historico": []
-            }
-            
-            # Atualiza situação no MongoDB
-            db["Jogadores"].update_one(
-                {"ID": str(ctx.author.id), "guild_id": str(ctx.guild.id)},
-                {"$set": {"Situação": "ativo_combate"}}
-            )
-            
-            # Mostra o início
-            embed = discord.Embed(
-                title=f"⚔️ Batalha contra {monstro['emoji']} {monstro['nome']}",
-                description=f"**{participantes[0]['nome']}** começa!",
-                color=discord.Color.red()
-            )
-            
-            texto = ""
-            for p in participantes:
-                if p["tipo"] == "jogador":
-                    texto += f"👤 {p['nome']} - ❤️ {p['vida']}/{p['vida_maxima']} | 💙 {p['mana']}\n"
-                else:
-                    texto += f"{p['emoji']} {p['nome']} - ❤️ {p['vida']}/{p['vida_maxima']}\n"
-            
-            embed.add_field(name="📋 Participantes", value=texto, inline=False)
-            embed.set_footer(text="Use !soco, !chute, !defesa, !esquiva ou !fugir")
-            
-            await ctx.send(embed=embed)
-            
-            # Se o monstro começar, ataca
-            if participantes[0]["tipo"] == "monstro":
-                await self._turno_monstro(ctx)
-                
-        except Exception as e:
-            await ctx.send(f"❌ Erro ao iniciar batalha: {str(e)}")
-            import traceback
-            traceback.print_exc()
+        )
+
+        await self._mostrar_inicio(
+            ctx,
+            atacante,
+            defensor,
+            participantes,
+            "PvE"
+        )
+
 
     # ==========================================
-    # TURNO DO MONSTRO
+    # DESAFIAR JOGADOR - PVP
     # ==========================================
 
-    async def _turno_monstro(self, ctx):
-        if ctx.channel.id not in self.combates:
+    @luta.command(name="pvp")
+    async def luta_pvp(
+        self,
+        ctx,
+        jogador_desafiado: discord.Member
+    ):
+
+        # Não desafiar a si mesmo
+        if jogador_desafiado.id == ctx.author.id:
+            await ctx.send(
+                "❌ Você não pode desafiar a si mesmo."
+            )
             return
-        
-        combate = self.combates[ctx.channel.id]
-        if not combate["ativo"]:
+
+        # Não desafiar bot
+        if jogador_desafiado.bot:
+            await ctx.send(
+                "❌ Você não pode desafiar um bot."
+            )
             return
-        
-        participantes = combate["participantes"]
-        participantes = [p for p in participantes if p["vida"] > 0]
-        combate["participantes"] = participantes
-        
-        # VERIFICA SE ACABOU
-        jogadores = [p for p in participantes if p["tipo"] == "jogador" and p["vida"] > 0]
-        monstros = [p for p in participantes if p["tipo"] == "monstro" and p["vida"] > 0]
-        
-        if not jogadores or not monstros:
-            combate["ativo"] = False
-            await self._finalizar(ctx)
+
+        # Verifica combate ativo no canal
+        if ctx.channel.id in self.combates:
+
+            combate = self.combates[ctx.channel.id]
+
+            if combate.get("ativo", False):
+                await ctx.send(
+                    "❌ Já existe um combate ativo neste canal."
+                )
+                return
+
+        # Verifica desafiante
+        verificacao_desafiante = pode_lutar(
+            str(ctx.author.id),
+            str(ctx.guild.id)
+        )
+
+        if not verificacao_desafiante.get("pode", False):
+            await ctx.send(
+                verificacao_desafiante.get(
+                    "mensagem",
+                    "❌ Você não pode lutar."
+                )
+            )
             return
-        
-        if combate["turno"] >= len(participantes):
-            combate["turno"] = 0
-        
-        atual = participantes[combate["turno"] % len(participantes)]
-        
-        if atual["tipo"] != "monstro":
+
+        # Verifica desafiado
+        verificacao_desafiado = pode_lutar(
+            str(jogador_desafiado.id),
+            str(ctx.guild.id)
+        )
+
+        if not verificacao_desafiado.get("pode", False):
+            await ctx.send(
+                f"❌ {jogador_desafiado.mention} não pode lutar."
+            )
             return
-        
-        alvo = random.choice(jogadores)
-        dano, tipo = calcular_dano(atual, alvo)
-        
-        if tipo == "esquivou":
-            msg = f"💨 {alvo['nome']} esquivou do ataque de {atual['nome']}!"
-        else:
-            alvo["vida"] = max(0, alvo["vida"] - dano)
-            msg = f"{atual['emoji']} {atual['nome']} atacou {alvo['nome']} causando **{dano}** de dano!"
-            
-            if alvo["vida"] <= 0:
-                msg += f"\n💀 **{alvo['nome']} foi derrotado!**"
-        
-        combate["historico"].append(msg)
-        participantes = [p for p in participantes if p["vida"] > 0]
-        combate["participantes"] = participantes
-        
-        # VERIFICA SE ACABOU
-        jogadores = [p for p in participantes if p["tipo"] == "jogador" and p["vida"] > 0]
-        monstros = [p for p in participantes if p["tipo"] == "monstro" and p["vida"] > 0]
-        
-        if not jogadores or not monstros:
-            combate["ativo"] = False
-            await self._finalizar(ctx)
-            return
-        
-        combate["turno"] += 1
-        if combate["turno"] >= len(participantes):
-            combate["turno"] = 0
-        
+
+        # Cria desafio
+        self.desafios[ctx.channel.id] = {
+            "desafiante_id": str(ctx.author.id),
+            "desafiado_id": str(jogador_desafiado.id),
+            "guild_id": str(ctx.guild.id)
+        }
+
         embed = discord.Embed(
-            title="⚔️ Ataque do Monstro",
-            description=msg,
+            title="⚔️ Desafio PvP!",
+            description=(
+                f"{ctx.author.mention} desafiou "
+                f"{jogador_desafiado.mention} para uma luta!"
+            ),
             color=discord.Color.orange()
         )
-        
-        texto = ""
-        for p in participantes:
-            if p["tipo"] == "jogador":
-                texto += f"👤 {p['nome']} - ❤️ {p['vida']}/{p['vida_maxima']}\n"
-            else:
-                texto += f"{p['emoji']} {p['nome']} - ❤️ {p['vida']}/{p['vida_maxima']}\n"
-        
-        embed.add_field(name="📋 Status", value=texto, inline=False)
-        
-        proximo = participantes[combate["turno"] % len(participantes)]
-        embed.set_footer(text=f"🔄 Próximo: {proximo['nome']}")
-        
-        await ctx.send(embed=embed)
-        
-        if proximo["tipo"] == "monstro" and combate["ativo"]:
-            await asyncio.sleep(0.5)
-            await self._turno_monstro(ctx)
 
-    # ==========================================
-    # AÇÃO DO JOGADOR
-    # ==========================================
-
-    async def _acao_jogador(self, ctx, acao: str):
-        if ctx.channel.id not in self.combates:
-            await ctx.send("❌ Não há batalha ativa.")
-            return
-        
-        combate = self.combates[ctx.channel.id]
-        if not combate["ativo"]:
-            await ctx.send("❌ Batalha já terminou.")
-            return
-        
-        participantes = combate["participantes"]
-        participantes = [p for p in participantes if p["vida"] > 0]
-        combate["participantes"] = participantes
-        
-        # VERIFICA SE ACABOU
-        jogadores = [p for p in participantes if p["tipo"] == "jogador" and p["vida"] > 0]
-        monstros = [p for p in participantes if p["tipo"] == "monstro" and p["vida"] > 0]
-        
-        if not jogadores or not monstros:
-            combate["ativo"] = False
-            await self._finalizar(ctx)
-            return
-        
-        if combate["turno"] >= len(participantes):
-            combate["turno"] = 0
-        
-        atual = participantes[combate["turno"] % len(participantes)]
-        
-        if atual["tipo"] != "jogador":
-            await ctx.send(f"⏳ É a vez de **{atual['nome']}**.")
-            return
-        
-        if atual["id"] != str(ctx.author.id):
-            await ctx.send(f"❌ Não é sua vez! É a vez de **{atual['nome']}**.")
-            return
-        
-        # DEFESA
-        if acao == "defesa":
-            atual["defesa_ativa"] = True
-            atual["esquiva_ativa"] = False
-            msg = f"🛡️ {atual['nome']} usou Defesa!"
-            combate["historico"].append(msg)
-            
-            combate["turno"] += 1
-            if combate["turno"] >= len(participantes):
-                combate["turno"] = 0
-            
-            embed = discord.Embed(
-                title="🛡️ Defesa",
-                description=msg,
-                color=discord.Color.blue()
-            )
-            
-            texto = ""
-            for p in participantes:
-                if p["tipo"] == "jogador":
-                    texto += f"👤 {p['nome']} - ❤️ {p['vida']}/{p['vida_maxima']}\n"
-                else:
-                    texto += f"{p['emoji']} {p['nome']} - ❤️ {p['vida']}/{p['vida_maxima']}\n"
-            
-            embed.add_field(name="📋 Status", value=texto, inline=False)
-            proximo = participantes[combate["turno"] % len(participantes)]
-            embed.set_footer(text=f"🔄 Próximo: {proximo['nome']}")
-            
-            await ctx.send(embed=embed)
-            
-            if proximo["tipo"] == "monstro" and combate["ativo"]:
-                await asyncio.sleep(0.5)
-                await self._turno_monstro(ctx)
-            return
-        
-        # ESQUIVA
-        if acao == "esquiva":
-            atual["esquiva_ativa"] = True
-            atual["defesa_ativa"] = False
-            msg = f"💨 {atual['nome']} tentou Esquiva!"
-            combate["historico"].append(msg)
-            
-            combate["turno"] += 1
-            if combate["turno"] >= len(participantes):
-                combate["turno"] = 0
-            
-            embed = discord.Embed(
-                title="💨 Esquiva",
-                description=msg,
-                color=discord.Color.purple()
-            )
-            
-            texto = ""
-            for p in participantes:
-                if p["tipo"] == "jogador":
-                    texto += f"👤 {p['nome']} - ❤️ {p['vida']}/{p['vida_maxima']}\n"
-                else:
-                    texto += f"{p['emoji']} {p['nome']} - ❤️ {p['vida']}/{p['vida_maxima']}\n"
-            
-            embed.add_field(name="📋 Status", value=texto, inline=False)
-            proximo = participantes[combate["turno"] % len(participantes)]
-            embed.set_footer(text=f"🔄 Próximo: {proximo['nome']}")
-            
-            await ctx.send(embed=embed)
-            
-            if proximo["tipo"] == "monstro" and combate["ativo"]:
-                await asyncio.sleep(0.5)
-                await self._turno_monstro(ctx)
-            return
-        
-        # FUGIR
-        if acao == "fugir":
-            if random.random() < 0.15:
-                combate["ativo"] = False
-                atual["mana"] = int(atual["mana"] * 0.5)
-                db["Jogadores"].update_one(
-                    {"ID": atual["id"], "guild_id": combate["guild_id"]},
-                    {"$set": {"Situação": "ativo", "Mana": atual["mana"]}}
-                )
-                
-                embed = discord.Embed(
-                    title="🏃 Fuga!",
-                    description=f"{atual['nome']} fugiu! (Perdeu 50% da mana)",
-                    color=discord.Color.green()
-                )
-                await ctx.send(embed=embed)
-                del self.combates[ctx.channel.id]
-                return
-            else:
-                msg = f"{atual['nome']} tentou fugir, mas falhou!"
-                combate["historico"].append(msg)
-                
-                combate["turno"] += 1
-                if combate["turno"] >= len(participantes):
-                    combate["turno"] = 0
-                
-                embed = discord.Embed(
-                    title="🏃 Fuga Falhou",
-                    description=msg,
-                    color=discord.Color.red()
-                )
-                
-                proximo = participantes[combate["turno"] % len(participantes)]
-                embed.set_footer(text=f"🔄 Próximo: {proximo['nome']}")
-                
-                await ctx.send(embed=embed)
-                
-                if proximo["tipo"] == "monstro" and combate["ativo"]:
-                    await asyncio.sleep(0.5)
-                    await self._turno_monstro(ctx)
-                return
-        
-        # ATAQUE
-        golpe = GOLPES.get(acao)
-        if not golpe:
-            await ctx.send(f"❌ Ação {acao} não encontrada.")
-            return
-        
-        alvos = [p for p in participantes if p["tipo"] == "monstro" and p["vida"] > 0]
-        if not alvos:
-            await ctx.send("❌ Não há monstros vivos.")
-            return
-        
-        alvo = alvos[0]
-        dano, tipo = calcular_dano(atual, alvo)
-        
-        if tipo == "esquivou":
-            msg = f"💨 {alvo['nome']} esquivou do seu {golpe['nome']}!"
-        else:
-            alvo["vida"] = max(0, alvo["vida"] - dano)
-            msg = f"{atual['nome']} usou **{golpe['nome']}** em {alvo['nome']} causando **{dano}** de dano!"
-            if alvo["vida"] <= 0:
-                msg += f"\n💀 **{alvo['nome']} foi derrotado!**"
-        
-        combate["historico"].append(msg)
-        participantes = [p for p in participantes if p["vida"] > 0]
-        combate["participantes"] = participantes
-        
-        # VERIFICA SE ACABOU
-        jogadores = [p for p in participantes if p["tipo"] == "jogador" and p["vida"] > 0]
-        monstros = [p for p in participantes if p["tipo"] == "monstro" and p["vida"] > 0]
-        
-        if not jogadores or not monstros:
-            combate["ativo"] = False
-            await self._finalizar(ctx)
-            return
-        
-        combate["turno"] += 1
-        if combate["turno"] >= len(participantes):
-            combate["turno"] = 0
-        
-        embed = discord.Embed(
-            title=f"⚔️ {golpe['nome']}!",
-            description=msg,
-            color=discord.Color.blue()
-        )
-        
-        texto = ""
-        for p in participantes:
-            if p["tipo"] == "jogador":
-                texto += f"👤 {p['nome']} - ❤️ {p['vida']}/{p['vida_maxima']}\n"
-            else:
-                texto += f"{p['emoji']} {p['nome']} - ❤️ {p['vida']}/{p['vida_maxima']}\n"
-        
-        embed.add_field(name="📋 Status", value=texto, inline=False)
-        proximo = participantes[combate["turno"] % len(participantes)]
-        embed.set_footer(text=f"🔄 Próximo: {proximo['nome']}")
-        
-        await ctx.send(embed=embed)
-        
-        if proximo["tipo"] == "monstro" and combate["ativo"]:
-            await asyncio.sleep(0.5)
-            await self._turno_monstro(ctx)
-
-    # ==========================================
-    # FINALIZAR
-    # ==========================================
-    
-    async def _finalizar(self, ctx, embed=None):
-        xpp = rec.get("xp_recompensa")
-        hunosp = rec.get("hunos_recompensa")
-    # """Finaliza a batalha e mostra as recompensas"""
-        if ctx.channel.id not in self.combates:
-            return
-        combate = self.combates[ctx.channel.id]
-        recompensas = finalizar_combate(combate)
-        # Cria o embed se não foi passado
-        if embed is None:
-            embed = discord.Embed(
-        title="🏆 Batalha Finalizada!",
-        color=discord.Color.green())
-        else:
-            embed.title = "🏆 Batalha Finalizada!"
-            embed.color = discord.Color.green()
-        # ==========================================
-        # STATUS FINAL DOS PARTICIPANTES
-        # ==========================================
-        texto_status = ""
-        for p in combate["participantes"]:
-            if p["tipo"] == "jogador":
-                status = "❤️ Vivo" if p["vida"] > 0 else "💀 Morto"
-                texto_status += f"👤 **{p['nome']}** - {status} ({p['vida']}/{p['vida_maxima']})\n"
-            else:
-                status = "❤️ Vivo" if p["vida"] > 0 else "💀 Morto"
-                texto_status += f"{p['emoji']} **{p['nome']}** (Nv. {p.get('nivel', 1)}) - {status} ({p['vida']}/{p['vida_maxima']})\n"
-        embed.add_field(name="📋 Status Final", value=texto_status, inline=False)
-        # ==========================================
-        # RECOMPENSAS
-        # ==========================================
-        if recompensas:
-            # Busca os nomes dos monstros derrotados
-            monstros_derrotados = [p for p in combate["participantes"] if p["tipo"] == "monstro" and p["vida"] <= 0]
-            texto_monstros = ""
-            for monstro in monstros_derrotados:
-                texto_monstros += f"{monstro['emoji']} {monstro['nome']} (Nv. {monstro.get('nivel', 1)})\n"
-            embed.add_field(
-                name="🎁 Recompensas",
-                value=(
-            f"**XP:** +{xpp}\n"
-            f"**Hunos:** +{hunosp}\n\n"
-            f"**Monstros Derrotados:**\n{texto_monstros if texto_monstros else 'Nenhum'}"
-        ),
-        inline=False)
-            # Adiciona um campo com o total de ganhos
-            total_ganhos = recompensas['xp'] + recompensas['hunos']
-            embed.add_field(
-        name="📊 Total de Ganhos",
-        value=f"**{total_ganhos}** pontos combinados (XP + Hunos)",
-        inline=False
-    )    
-        else:
-            # Verifica se todos os jogadores morreram
-            jogadores_vivos = [p for p in combate["participantes"] if p["tipo"] == "jogador" and p["vida"] > 0]
-            if not jogadores_vivos:
-                embed.add_field(
-            name="💀 Fim da Jornada",
-            value="Todos os jogadores foram derrotados!",
-            inline=False
-        )
-            else:
-                embed.add_field(
-            name="⚠️ Sem Recompensas",
-            value="Nenhum monstro foi derrotado.",
-            inline=False
-        )
-
-        # ==========================================
-        # HISTÓRICO DA BATALHA
-        # ==========================================
-        if combate.get("historico"):
-            historico_texto = "\n".join(combate["historico"][-5:])
-            embed.add_field(
-        name="📜 Últimas Ações",
-        value=historico_texto if historico_texto else "Nenhuma ação registrada.",
-        inline=False
-                        )
-        # ==========================================
-        # ESTATÍSTICAS DA BATALHA
-        # ==========================================
-        total_rodadas = combate.get("rodada", 0) + 1
-        total_acoes = len(combate.get("historico", []))
-    
         embed.add_field(
-    name="📊 Estatísticas da Batalha",
-    value=(
-        f"**Rodadas:** {total_rodadas}\n"
-        f"**Ações:** {total_acoes}\n"
-        f"**Participantes:** {len(combate['participantes'])}"
-    ),
-    inline=False
-)
-    #
-    ## ==========================================
-    ## RODAPÉ
-    ## ==========================================
-        embed.set_footer(text="Moon Tensura • Korczak Technologies")
-
-        # Remove o combate da memória
-        del self.combates[ctx.channel.id]
+            name="📋 Resposta",
+            value=(
+                f"{jogador_desafiado.mention}, use:\n"
+                "`!luta aceitar`\n"
+                "ou\n"
+                "`!luta recusar`"
+            ),
+            inline=False
+        )
 
         await ctx.send(embed=embed)
 
+
     # ==========================================
-    # COMANDO RESETAR LUTA
+    # ACEITAR DESAFIO PVP
     # ==========================================
 
-    @commands.command(name="rluta")
-    async def rluta(self, ctx):
-        """Reseta a situação de combate do jogador"""
-        try:
-            # Verifica se o jogador está em combate
-            jogador = db["Jogadores"].find_one({
-                "ID": str(ctx.author.id),
-                "guild_id": str(ctx.guild.id)
-            })
-            
-            if not jogador:
-                await ctx.send("❌ Você não está registrado.")
+    @luta.command(name="aceitar")
+    async def luta_aceitar(self, ctx):
+
+        desafio = self.desafios.get(
+            ctx.channel.id
+        )
+
+        if not desafio:
+            await ctx.send(
+                "❌ Não existe nenhum desafio PvP pendente."
+            )
+            return
+
+        if desafio["desafiado_id"] != str(ctx.author.id):
+            await ctx.send(
+                "❌ Esse desafio não é para você."
+            )
+            return
+
+        if ctx.channel.id in self.combates:
+
+            combate = self.combates[ctx.channel.id]
+
+            if combate.get("ativo", False):
+                await ctx.send(
+                    "❌ Já existe um combate ativo neste canal."
+                )
                 return
-            
-            situacao = jogador.get("Situação", "")
-            
-            if situacao != "ativo_combate":
-                await ctx.send("✅ Você já não está em combate.")
-                return
-            
-            # Reseta a situação
+
+        desafiante_id = desafio["desafiante_id"]
+        desafiado_id = desafio["desafiado_id"]
+        guild_id = desafio["guild_id"]
+
+        # Verifica novamente os jogadores
+        verificacao_1 = pode_lutar(
+            desafiante_id,
+            guild_id
+        )
+
+        verificacao_2 = pode_lutar(
+            desafiado_id,
+            guild_id
+        )
+
+        if not verificacao_1.get("pode", False):
+            await ctx.send(
+                "❌ O desafiante não pode mais lutar."
+            )
+            del self.desafios[ctx.channel.id]
+            return
+
+        if not verificacao_2.get("pode", False):
+            await ctx.send(
+                "❌ Você não pode mais lutar."
+            )
+            del self.desafios[ctx.channel.id]
+            return
+
+        jogador_1 = criar_participante_jogador(
+            desafiante_id,
+            guild_id
+        )
+
+        jogador_2 = criar_participante_jogador(
+            desafiado_id,
+            guild_id
+        )
+
+        if not jogador_1 or not jogador_2:
+            await ctx.send(
+                "❌ Não foi possível carregar os jogadores."
+            )
+            del self.desafios[ctx.channel.id]
+            return
+
+        # Obtém os nomes atuais
+        membro_1 = ctx.guild.get_member(
+            int(desafiante_id)
+        )
+
+        membro_2 = ctx.guild.get_member(
+            int(desafiado_id)
+        )
+
+        if membro_1:
+            jogador_1["nome"] = membro_1.display_name
+
+        if membro_2:
+            jogador_2["nome"] = membro_2.display_name
+
+        participantes = [
+            jogador_1,
+            jogador_2
+        ]
+
+        # Quem tem maior velocidade começa
+        participantes.sort(
+            key=lambda participante:
+                participante.get("velocidade", 0),
+            reverse=True
+        )
+
+        atacante = participantes[0]
+        defensor = participantes[1]
+
+        # Se velocidades forem iguais,
+        # sorteia o primeiro atacante
+        if (
+            participantes[0].get("velocidade", 0)
+            == participantes[1].get("velocidade", 0)
+        ):
+            random.shuffle(participantes)
+
+            atacante = participantes[0]
+            defensor = participantes[1]
+
+        self.combates[ctx.channel.id] = {
+            "participantes": participantes,
+            "turno": 0,
+            "numero_turno": 1,
+            "fase": "ataque",
+            "ativo": True,
+            "guild_id": guild_id,
+            "pvp": True,
+            "historico": [],
+            "ataque_pendente": None
+        }
+
+        # Coloca os dois em combate
+        for participante in participantes:
+
             db["Jogadores"].update_one(
-                {"ID": str(ctx.author.id), "guild_id": str(ctx.guild.id)},
-                {"$set": {"Situação": "ativo"}}
+                {
+                    "ID": participante["id"],
+                    "guild_id": guild_id
+                },
+                {
+                    "$set": {
+                        "Situação": "ativo_combate"
+                    }
+                }
             )
-            
-            # Verifica se havia um combate ativo no canal e remove
-            if ctx.channel.id in self.combates:
-                combate = self.combates[ctx.channel.id]
-                # Remove o jogador do combate
-                combate["participantes"] = [p for p in combate["participantes"] if p["id"] != str(ctx.author.id)]
-                
-                # Se não sobrar ninguém ou só monstros, remove o combate
-                if not combate["participantes"] or all(p["tipo"] != "jogador" for p in combate["participantes"]):
-                    combate["ativo"] = False
-                    del self.combates[ctx.channel.id]
-            
-            embed = discord.Embed(
-                title="✅ Combate Resetado!",
-                description=f"{ctx.author.mention}, sua situação de combate foi resetada.",
-                color=discord.Color.green()
+
+        # Remove desafio
+        del self.desafios[ctx.channel.id]
+
+        await self._mostrar_inicio(
+            ctx,
+            atacante,
+            defensor,
+            participantes,
+            "PvP"
+        )
+
+
+    # ==========================================
+    # RECUSAR DESAFIO PVP
+    # ==========================================
+
+    @luta.command(name="recusar")
+    async def luta_recusar(self, ctx):
+
+        desafio = self.desafios.get(
+            ctx.channel.id
+        )
+
+        if not desafio:
+            await ctx.send(
+                "❌ Não existe nenhum desafio pendente."
             )
-            embed.add_field(
-                name="📋 Status",
-                value="**Situação:** ativo",
-                inline=False
+            return
+
+        if desafio["desafiado_id"] != str(ctx.author.id):
+            await ctx.send(
+                "❌ Você não pode recusar esse desafio."
             )
-            embed.set_footer(text="Agora você pode usar outros comandos normalmente.")
-            
+            return
+
+        del self.desafios[ctx.channel.id]
+
+        await ctx.send(
+            f"❌ {ctx.author.mention} recusou o desafio."
+        )
+
+
+    # ==========================================
+    # MOSTRAR INÍCIO
+    # ==========================================
+
+    async def _mostrar_inicio(
+        self,
+        ctx,
+        atacante,
+        defensor,
+        participantes,
+        modo
+    ):
+
+        embed = discord.Embed(
+            title=f"⚔️ Combate {modo} iniciado!",
+            description=(
+                f"🔔 **Turno 1**\n\n"
+                f"⚔️ **{atacante['nome']}** "
+                "começa atacando!"
+            ),
+            color=discord.Color.red()
+        )
+
+        embed.add_field(
+            name="🎯 Defensor",
+            value=(
+                f"🛡️ **{defensor['nome']}**"
+            ),
+            inline=False
+        )
+
+        embed.add_field(
+            name="📋 Status",
+            value=self._texto_status(participantes),
+            inline=False
+        )
+
+        if atacante["tipo"] == "jogador":
+
+            embed.set_footer(
+                text="Use !soco ou !chute para atacar."
+            )
+
             await ctx.send(embed=embed)
-            
-        except Exception as e:
-            await ctx.send(f"❌ Erro ao resetar combate: {str(e)}")
-            print(f"Erro em rluta: {e}")
+
+        else:
+
+            embed.set_footer(
+                text="O monstro está preparando seu ataque..."
+            )
+
+            await ctx.send(embed=embed)
+
+            await asyncio.sleep(1)
+
+            await self._ataque_monstro(ctx)
+
 
     # ==========================================
-    # COMANDO DE TESTE
+    # TEXTO DE STATUS
     # ==========================================
 
-    @commands.command(name="testpve")
-    async def testpve(self, ctx):
-        """Comando de teste para debug do PvE"""
-        try:
-            await ctx.send("🔍 Iniciando teste PvE...")
-            
-            # Testa 1: Verifica se MONSTROS está carregado
-            await ctx.send(f"📊 MONSTROS carregado: {len(MONSTROS)} monstros")
-            if MONSTROS:
-                await ctx.send(f"📋 Monstros disponíveis: {', '.join(list(MONSTROS.keys())[:5])}")
-            
-            # Testa 2: Verifica se o jogador existe
-            jogador = obter_jogador(str(ctx.author.id), str(ctx.guild.id))
-            if jogador:
-                await ctx.send(f"✅ Jogador encontrado: {jogador.get('Nome', 'Sem nome')}")
+    def _texto_status(self, participantes):
+
+        texto = ""
+
+        for participante in participantes:
+
+            if participante["tipo"] == "jogador":
+
+                texto += (
+                    f"👤 **{participante['nome']}**\n"
+                    f"❤️ {participante['vida']}"
+                    f"/{participante['vida_maxima']}\n"
+                    f"💙 {participante.get('mana', 0)}\n\n"
+                )
+
             else:
-                await ctx.send("❌ Jogador NÃO encontrado!")
-                return
-            
-            # Testa 3: Verifica se pode lutar
-            verificacao = pode_lutar(str(ctx.author.id), str(ctx.guild.id))
-            await ctx.send(f"🔍 Pode lutar: {verificacao}")
-            
-            # Testa 4: Tenta criar participante
-            participante = criar_participante_jogador(str(ctx.author.id), str(ctx.guild.id))
-            if participante:
-                await ctx.send(f"✅ Participante criado: {participante['nome']} - Vida: {participante['vida']}")
-            else:
-                await ctx.send("❌ Falha ao criar participante!")
-                return
-            
-            # Testa 5: Tenta criar monstro
-            monstro = criar_monstro("slime", 1)
-            if monstro:
-                await ctx.send(f"✅ Monstro criado: {monstro['emoji']} {monstro['nome']} - Vida: {monstro['vida']}")
-            else:
-                await ctx.send("❌ Falha ao criar monstro!")
-                return
-            
-            await ctx.send("✅ Todos os testes passaram! O sistema PvE deve funcionar.")
-            
-        except Exception as e:
-            await ctx.send(f"❌ Erro no teste: {str(e)}")
-            import traceback
-            traceback.print_exc()
+
+                texto += (
+                    f"{participante.get('emoji', '👹')} "
+                    f"**{participante['nome']}**\n"
+                    f"❤️ {participante['vida']}"
+                    f"/{participante['vida_maxima']}\n\n"
+                )
+
+        return texto
+
 
     # ==========================================
-    # COMANDOS
+    # OBTER COMBATE
+    # ==========================================
+
+    def _obter_combate(self, channel_id):
+
+        return self.combates.get(channel_id)
+
+
+    # ==========================================
+    # OBTER ATACANTE
+    # ==========================================
+
+    def _obter_atacante(self, combate):
+
+        return combate["participantes"][
+            combate["turno"]
+        ]
+
+
+    # ==========================================
+    # OBTER DEFENSOR
+    # ==========================================
+
+    def _obter_defensor(self, combate):
+
+        participantes = combate["participantes"]
+
+        indice = (
+            combate["turno"] + 1
+        ) % len(participantes)
+
+        return participantes[indice]
+
+
+    # ==========================================
+    # ATAQUE DO JOGADOR
+    # ==========================================
+
+    async def _ataque_jogador(
+        self,
+        ctx,
+        tipo_ataque
+    ):
+
+        combate = self._obter_combate(
+            ctx.channel.id
+        )
+
+        if not combate:
+
+            await ctx.send(
+                "❌ Não há batalha ativa."
+            )
+            return
+
+        if not combate.get("ativo", False):
+            await ctx.send(
+                "❌ Esta batalha terminou."
+            )
+            return
+
+        if combate["fase"] != "ataque":
+            await ctx.send(
+                "❌ O ataque anterior ainda precisa ser defendido."
+            )
+            return
+
+        atacante = self._obter_atacante(combate)
+        defensor = self._obter_defensor(combate)
+
+        if atacante["tipo"] != "jogador":
+
+            await ctx.send(
+                f"⏳ É a vez de **{atacante['nome']}**."
+            )
+            return
+
+        if atacante["id"] != str(ctx.author.id):
+
+            await ctx.send(
+                f"❌ Não é sua vez. "
+                f"Agora é a vez de **{atacante['nome']}**."
+            )
+            return
+
+        if tipo_ataque == "soco":
+            nome_ataque = "👊 Soco"
+
+        elif tipo_ataque == "chute":
+            nome_ataque = "🦵 Chute"
+
+        else:
+            nome_ataque = "⚔️ Ataque"
+
+        combate["ataque_pendente"] = {
+            "atacante_id": atacante["id"],
+            "defensor_id": defensor["id"],
+            "tipo": tipo_ataque,
+            "nome": nome_ataque
+        }
+
+        # Agora o defensor deve agir
+        combate["fase"] = "defesa"
+
+        mensagem = (
+            f"{nome_ataque}\n\n"
+            f"⚔️ **{atacante['nome']}** "
+            f"atacou **{defensor['nome']}**!\n\n"
+            f"🛡️ Agora **{defensor['nome']}** "
+            "deve se defender."
+        )
+
+        embed = discord.Embed(
+            title=f"⚔️ Turno {combate['numero_turno']}",
+            description=mensagem,
+            color=discord.Color.orange()
+        )
+
+        embed.add_field(
+            name="📋 Status",
+            value=self._texto_status(
+                combate["participantes"]
+            ),
+            inline=False
+        )
+
+        # Monstro se defende automaticamente
+        if defensor["tipo"] == "monstro":
+
+            embed.set_footer(
+                text="O monstro está reagindo..."
+            )
+
+            await ctx.send(embed=embed)
+
+            await asyncio.sleep(1)
+
+            await self._defesa_monstro(ctx)
+
+            return
+
+        # Jogador precisa escolher
+        embed.set_footer(
+            text=(
+                f"{defensor['nome']}: "
+                "use !defesa ou !esquiva."
+            )
+        )
+
+        await ctx.send(embed=embed)
+
+
+    # ==========================================
+    # COMANDO SOCO
     # ==========================================
 
     @commands.command(name="soco")
     async def soco(self, ctx):
-        await self._acao_jogador(ctx, "soco")
+
+        await self._ataque_jogador(
+            ctx,
+            "soco"
+        )
+
+
+    # ==========================================
+    # COMANDO CHUTE
+    # ==========================================
 
     @commands.command(name="chute")
     async def chute(self, ctx):
-        await self._acao_jogador(ctx, "chute")
+
+        await self._ataque_jogador(
+            ctx,
+            "chute"
+        )
+
+
+    # ==========================================
+    # ATAQUE DO MONSTRO
+    # ==========================================
+
+    async def _ataque_monstro(self, ctx):
+
+        combate = self._obter_combate(
+            ctx.channel.id
+        )
+
+        if not combate:
+            return
+
+        if not combate.get("ativo", False):
+            return
+
+        if combate["fase"] != "ataque":
+            return
+
+        atacante = self._obter_atacante(combate)
+        defensor = self._obter_defensor(combate)
+
+        if atacante["tipo"] != "monstro":
+            return
+
+        combate["ataque_pendente"] = {
+            "atacante_id": atacante["id"],
+            "defensor_id": defensor["id"],
+            "tipo": "ataque_monstro",
+            "nome": "⚔️ Ataque do Monstro"
+        }
+
+        combate["fase"] = "defesa"
+
+        embed = discord.Embed(
+            title=f"⚔️ Turno {combate['numero_turno']}",
+            description=(
+                f"{atacante.get('emoji', '👹')} "
+                f"**{atacante['nome']}** "
+                f"atacou **{defensor['nome']}**!\n\n"
+                f"🛡️ **{defensor['nome']}**, "
+                "escolha sua defesa!"
+            ),
+            color=discord.Color.dark_red()
+        )
+
+        embed.add_field(
+            name="📋 Status",
+            value=self._texto_status(
+                combate["participantes"]
+            ),
+            inline=False
+        )
+
+        embed.set_footer(
+            text="Use !defesa ou !esquiva."
+        )
+
+        await ctx.send(embed=embed)
+
+
+    # ==========================================
+    # DEFESA DO JOGADOR
+    # ==========================================
+
+    async def _defesa_jogador(
+        self,
+        ctx,
+        acao
+    ):
+
+        combate = self._obter_combate(
+            ctx.channel.id
+        )
+
+        if not combate:
+
+            await ctx.send(
+                "❌ Não há batalha ativa."
+            )
+            return
+
+        if not combate.get("ativo", False):
+            return
+
+        if combate["fase"] != "defesa":
+
+            await ctx.send(
+                "❌ Não existe nenhum ataque para defender."
+            )
+            return
+
+        atacante = self._obter_atacante(combate)
+        defensor = self._obter_defensor(combate)
+
+        if defensor["tipo"] != "jogador":
+
+            await ctx.send(
+                "❌ Agora não é um jogador que deve defender."
+            )
+            return
+
+        if defensor["id"] != str(ctx.author.id):
+
+            await ctx.send(
+                f"❌ É **{defensor['nome']}** "
+                "quem deve defender."
+            )
+            return
+
+        if acao == "defesa":
+
+            defensor["defesa_ativa"] = True
+            defensor["esquiva_ativa"] = False
+
+            mensagem = (
+                f"🛡️ **{defensor['nome']}** "
+                "preparou sua defesa!"
+            )
+
+            cor = discord.Color.blue()
+
+        else:
+
+            defensor["esquiva_ativa"] = True
+            defensor["defesa_ativa"] = False
+
+            mensagem = (
+                f"💨 **{defensor['nome']}** "
+                "tentou esquivar!"
+            )
+
+            cor = discord.Color.blue()
+
+        await ctx.send(
+            embed=discord.Embed(
+                title="🛡️ Defesa",
+                description=mensagem,
+                color=cor
+            )
+        )
+
+        await asyncio.sleep(0.5)
+
+        await self._resolver_ataque(ctx)
+
+
+    # ==========================================
+    # COMANDO DEFESA
+    # ==========================================
 
     @commands.command(name="defesa")
     async def defesa(self, ctx):
-        await self._acao_jogador(ctx, "defesa")
+
+        await self._defesa_jogador(
+            ctx,
+            "defesa"
+        )
+
+
+    # ==========================================
+    # COMANDO ESQUIVA
+    # ==========================================
 
     @commands.command(name="esquiva")
     async def esquiva(self, ctx):
-        await self._acao_jogador(ctx, "esquiva")
+
+        await self._defesa_jogador(
+            ctx,
+            "esquiva"
+        )
+
+
+    # ==========================================
+    # DEFESA DO MONSTRO
+    # ==========================================
+
+    async def _defesa_monstro(self, ctx):
+
+        combate = self._obter_combate(
+            ctx.channel.id
+        )
+
+        if not combate:
+            return
+
+        if combate["fase"] != "defesa":
+            return
+
+        defensor = self._obter_defensor(combate)
+
+        if defensor["tipo"] != "monstro":
+            return
+
+        escolha = random.choice([
+            "defesa",
+            "esquiva",
+            "normal"
+        ])
+
+        if escolha == "defesa":
+
+            defensor["defesa_ativa"] = True
+            defensor["esquiva_ativa"] = False
+
+            mensagem = (
+                f"🛡️ **{defensor['nome']}** "
+                "preparou sua defesa!"
+            )
+
+        elif escolha == "esquiva":
+
+            defensor["esquiva_ativa"] = True
+            defensor["defesa_ativa"] = False
+
+            mensagem = (
+                f"💨 **{defensor['nome']}** "
+                "tentou esquivar!"
+            )
+
+        else:
+
+            defensor["defesa_ativa"] = False
+            defensor["esquiva_ativa"] = False
+
+            mensagem = (
+                f"😨 **{defensor['nome']}** "
+                "não conseguiu se defender!"
+            )
+
+        await ctx.send(
+            embed=discord.Embed(
+                title="🛡️ Defesa do Monstro",
+                description=mensagem,
+                color=discord.Color.dark_gold()
+            )
+        )
+
+        await asyncio.sleep(0.5)
+
+        await self._resolver_ataque(ctx)
+
+
+    # ==========================================
+    # RESOLVER ATAQUE
+    # ==========================================
+
+    async def _resolver_ataque(self, ctx):
+
+        combate = self._obter_combate(
+            ctx.channel.id
+        )
+
+        if not combate:
+            return
+
+        atacante = self._obter_atacante(combate)
+        defensor = self._obter_defensor(combate)
+
+        dano, resultado = calcular_dano(
+            atacante,
+            defensor
+        )
+
+        if resultado == "esquivou":
+
+            mensagem = (
+                f"💨 **{defensor['nome']}** "
+                f"esquivou completamente do ataque de "
+                f"**{atacante['nome']}**!"
+            )
+
+        else:
+
+            defensor["vida"] = max(
+                0,
+                defensor["vida"] - dano
+            )
+
+            mensagem = (
+                f"⚔️ **{atacante['nome']}** "
+                f"causou **{dano} de dano** em "
+                f"**{defensor['nome']}**!"
+            )
+
+            if defensor["vida"] <= 0:
+
+                mensagem += (
+                    f"\n\n💀 **{defensor['nome']} "
+                    "foi derrotado!**"
+                )
+
+        # Estados defensivos são consumidos
+        defensor["defesa_ativa"] = False
+        defensor["esquiva_ativa"] = False
+
+        embed = discord.Embed(
+            title="💥 Resultado do Ataque",
+            description=mensagem,
+            color=discord.Color.red()
+        )
+
+        embed.add_field(
+            name="📋 Status Atual",
+            value=self._texto_status(
+                combate["participantes"]
+            ),
+            inline=False
+        )
+
+        await ctx.send(embed=embed)
+
+        resultado_combate = obter_vencedores(
+            combate
+        )
+
+        if resultado_combate:
+
+            combate["ativo"] = False
+
+            await self._finalizar(ctx)
+
+            return
+
+        await asyncio.sleep(1)
+
+        await self._proximo_turno(ctx)
+
+
+    # ==========================================
+    # PRÓXIMO TURNO
+    # ==========================================
+
+    async def _proximo_turno(self, ctx):
+
+        combate = self._obter_combate(
+            ctx.channel.id
+        )
+
+        if not combate:
+            return
+
+        if not combate.get("ativo", False):
+            return
+
+        participantes = combate["participantes"]
+
+        # O antigo defensor vira atacante
+        combate["turno"] = (
+            combate["turno"] + 1
+        ) % len(participantes)
+
+        combate["numero_turno"] += 1
+
+        combate["fase"] = "ataque"
+
+        combate["ataque_pendente"] = None
+
+        atacante = self._obter_atacante(combate)
+        defensor = self._obter_defensor(combate)
+
+        embed = discord.Embed(
+            title=f"🔄 Turno {combate['numero_turno']}",
+            description=(
+                f"⚔️ Agora é a vez de "
+                f"**{atacante['nome']}** atacar!"
+            ),
+            color=discord.Color.green()
+        )
+
+        embed.add_field(
+            name="🎯 Defensor",
+            value=f"🛡️ **{defensor['nome']}**",
+            inline=False
+        )
+
+        if atacante["tipo"] == "jogador":
+
+            embed.set_footer(
+                text="Use !soco ou !chute."
+            )
+
+            await ctx.send(embed=embed)
+
+        else:
+
+            embed.set_footer(
+                text="O monstro está preparando seu ataque..."
+            )
+
+            await ctx.send(embed=embed)
+
+            await asyncio.sleep(1)
+
+            await self._ataque_monstro(ctx)
+
+
+    # ==========================================
+    # FUGIR
+    # ==========================================
 
     @commands.command(name="fugir")
     async def fugir(self, ctx):
-        await self._acao_jogador(ctx, "fugir")
+
+        combate = self._obter_combate(
+            ctx.channel.id
+        )
+
+        if not combate:
+
+            await ctx.send(
+                "❌ Você não está em combate."
+            )
+            return
+
+        # PvP não permite fugir
+        if combate.get("pvp", False):
+
+            await ctx.send(
+                "❌ Não é possível fugir de um combate PvP."
+            )
+            return
+
+        jogador = None
+
+        for participante in combate["participantes"]:
+
+            if (
+                participante["tipo"] == "jogador"
+                and participante["id"] == str(ctx.author.id)
+            ):
+                jogador = participante
+                break
+
+        if not jogador:
+
+            await ctx.send(
+                "❌ Você não participa deste combate."
+            )
+            return
+
+        chance_fuga = 0.15
+
+        if random.random() < chance_fuga:
+
+            combate["ativo"] = False
+
+            db["Jogadores"].update_one(
+                {
+                    "ID": jogador["id"],
+                    "guild_id": combate["guild_id"]
+                },
+                {
+                    "$set": {
+                        "Situação": "ativo",
+                        "Vida": jogador["vida"],
+                        "Mana": jogador.get("mana", 0)
+                    }
+                }
+            )
+
+            await ctx.send(
+                f"💨 **{jogador['nome']}** conseguiu fugir!"
+            )
+
+            if ctx.channel.id in self.combates:
+                del self.combates[ctx.channel.id]
+
+        else:
+
+            await ctx.send(
+                "❌ Você não conseguiu fugir!"
+            )
+
+
+    # ==========================================
+    # FINALIZAR COMBATE
+    # ==========================================
+
+    async def _finalizar(self, ctx):
+
+        combate = self._obter_combate(
+            ctx.channel.id
+        )
+
+        if not combate:
+            return
+
+        combate["ativo"] = False
+
+        resultado = obter_vencedores(
+            combate
+        )
+
+        recompensas = finalizar_combate(
+            combate
+        )
+
+        if resultado == "jogadores":
+
+            descricao = (
+                "🏆 Os jogadores venceram o combate!"
+            )
+
+            cor = discord.Color.green()
+
+        elif resultado == "monstros":
+
+            descricao = (
+                "💀 Os monstros venceram o combate!"
+            )
+
+            cor = discord.Color.red()
+
+        else:
+
+            descricao = (
+                "⚠️ O combate terminou sem vencedores."
+            )
+
+            cor = discord.Color.greyple()
+
+        embed = discord.Embed(
+            title="⚔️ Combate Finalizado",
+            description=descricao,
+            color=cor
+        )
+
+        # Recompensas apenas quando existirem
+        if recompensas:
+
+            xp = recompensas.get("xp", 0)
+            hunos = recompensas.get("hunos", 0)
+
+            if xp > 0 or hunos > 0:
+
+                embed.add_field(
+                    name="🎁 Recompensas",
+                    value=(
+                        f"✨ XP: **{xp}**\n"
+                        f"💰 Hunos: **{hunos}**"
+                    ),
+                    inline=False
+                )
+
+        embed.add_field(
+            name="📋 Status Final",
+            value=self._texto_status(
+                combate["participantes"]
+            ),
+            inline=False
+        )
+
+        await ctx.send(embed=embed)
+
+        if ctx.channel.id in self.combates:
+            del self.combates[ctx.channel.id]
+
+
+    # ==========================================
+    # RESETAR LUTA
+    # ==========================================
+
+    @commands.command(
+        name="rluta",
+        aliases=["resetarluta"]
+    )
+    async def rluta(self, ctx):
+
+        combate = self._obter_combate(
+            ctx.channel.id
+        )
+
+        if not combate:
+
+            await ctx.send(
+                "❌ Não existe combate ativo neste canal."
+            )
+            return
+
+        for participante in combate["participantes"]:
+
+            if participante["tipo"] != "jogador":
+                continue
+
+            db["Jogadores"].update_one(
+                {
+                    "ID": participante["id"],
+                    "guild_id": combate["guild_id"]
+                },
+                {
+                    "$set": {
+                        "Situação": "ativo",
+                        "Vida": participante["vida"],
+                        "Mana": participante.get(
+                            "mana",
+                            0
+                        )
+                    }
+                }
+            )
+
+        del self.combates[ctx.channel.id]
+
+        await ctx.send(
+            "🔄 Combate resetado com sucesso."
+        )
+
+
+# ==========================================
+# SETUP
+# ==========================================
 
 async def setup(bot):
-    await bot.add_cog(Luta(bot))
+
+    await bot.add_cog(
+        Luta(bot)
+    )
