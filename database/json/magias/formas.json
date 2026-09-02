@@ -50,8 +50,8 @@
       "efeito": {
         "nome": "Barreira",
         "descricao": "Cria uma proteção temporária.",
-        "turnos": 3,
-        "valor": 25
+        "turnos": 1,
+        "valor": 100
       }
     },
     {
@@ -68,7 +68,7 @@
       "efeito": {
         "nome": "Prisão",
         "descricao": "Impede temporariamente os movimentos ou ações do alvo.",
-        "turnos": 3,
+        "turnos": 1,
         "valor": 0
       }
     },
@@ -87,7 +87,7 @@
         "nome": "Cura",
         "descricao": "Recupera pontos de vida.",
         "turnos": 1,
-        "valor": 20
+        "valor": 30
       }
     },
     {

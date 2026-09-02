@@ -4,21 +4,19 @@ from discord.ext import commands
 from database.python.mongodb import db
 from database.python.magias import DatabaseMagias
 
-
 class Magias(commands.Cog):
-
     def __init__(self, bot):
         self.bot = bot
 
-    # ============================================================
-    # FUNÇÕES AUXILIARES
-    # ============================================================
+# ============================================================
+# FUNÇÕES AUXILIARES
+# ============================================================
 
     def normalizar(self, texto):
         """
-        Normaliza um texto para comparação.
-        Remove espaços extras e converte para minúsculo.
-        """
+    Normaliza textos para comparação.
+    """
+
         if texto is None:
             return ""
 
@@ -26,8 +24,8 @@ class Magias(commands.Cog):
 
     def normalizar_lista(self, lista):
         """
-        Normaliza uma lista de strings ou dicionários.
-        """
+    Normaliza uma lista que pode conter strings ou dicionários.
+    """
 
         resultado = []
 
@@ -37,36 +35,29 @@ class Magias(commands.Cog):
         for item in lista:
 
             if isinstance(item, dict):
+
                 valor = (
-                    item.get("id")
-                    or item.get("ID")
-                    or item.get("nome")
-                    or item.get("Nome")
-                    or ""
-                )
+                item.get("id")
+                or item.get("ID")
+                or item.get("nome")
+                or item.get("Nome")
+                or ""
+            )
+
             else:
                 valor = item
 
-            resultado.append(
-                self.normalizar(valor)
-            )
+            valor_normalizado = self.normalizar(valor)
+
+            if valor_normalizado:
+                resultado.append(valor_normalizado)
 
         return resultado
 
     def carregar_catalogo(self, dados, chave):
         """
-        Obtém uma lista de um catálogo JSON.
-
-        Exemplo:
-        {
-            "formas": [...]
-        }
-
-        ou:
-        {
-            "elementos": [...]
-        }
-        """
+    Obtém uma lista de um catálogo JSON.
+    """
 
         if not dados:
             return []
@@ -75,6 +66,7 @@ class Magias(commands.Cog):
             return dados
 
         if isinstance(dados, dict):
+
             resultado = dados.get(chave, [])
 
             if isinstance(resultado, list):
@@ -84,8 +76,8 @@ class Magias(commands.Cog):
 
     def buscar_item(self, lista, identificador):
         """
-        Busca um item pelo ID ou pelo nome.
-        """
+    Busca um item pelo ID ou nome.
+    """
 
         identificador = self.normalizar(identificador)
 
@@ -94,16 +86,16 @@ class Magias(commands.Cog):
             if isinstance(item, dict):
 
                 item_id = self.normalizar(
-                    item.get("id")
-                    or item.get("ID")
-                    or ""
-                )
+                item.get("id")
+                or item.get("ID")
+                or ""
+            )
 
                 item_nome = self.normalizar(
-                    item.get("nome")
-                    or item.get("Nome")
-                    or ""
-                )
+                item.get("nome")
+                or item.get("Nome")
+                or ""
+            )
 
                 if identificador == item_id:
                     return item
@@ -120,8 +112,8 @@ class Magias(commands.Cog):
 
     def formatar_lista(self, lista, limite=1024):
         """
-        Formata uma lista para um Embed.
-        """
+    Formata uma lista para uso em Embed.
+    """
 
         if not lista:
             return "Nenhum."
@@ -133,29 +125,40 @@ class Magias(commands.Cog):
             if isinstance(item, dict):
 
                 nome = (
-                    item.get("nome")
-                    or item.get("Nome")
-                    or item.get("id")
-                    or item.get("ID")
-                    or "Desconhecido"
-                )
+                item.get("nome")
+                or item.get("Nome")
+                or item.get("id")
+                or item.get("ID")
+                or "Desconhecido"
+            )
 
                 item_id = (
-                    item.get("id")
-                    or item.get("ID")
-                    or ""
-                )
+                item.get("id")
+                or item.get("ID")
+                or ""
+            )
 
                 if item_id:
-                    linha = f"• **{nome}** (`{item_id}`)\n"
+
+                    linha = (
+                    f"• **{nome}** "
+                    f"(`{item_id}`)\n"
+                )
+
                 else:
-                    linha = f"• **{nome}**\n"
+
+                    linha = (
+                    f"• **{nome}**\n"
+                )
 
             else:
 
-                linha = f"• `{item}`\n"
+                linha = (
+                f"• `{item}`\n"
+            )
 
             if len(texto) + len(linha) > limite:
+
                 texto += "..."
                 break
 
@@ -163,225 +166,277 @@ class Magias(commands.Cog):
 
         return texto or "Nenhum."
 
-    # ============================================================
-    # COMANDO BASE
-    # ============================================================
+    def converter_numero(self, valor, padrao=0):
+        """
+    Converte valores para float sem gerar erro.
+    """
+
+        try:
+            return float(valor)
+
+        except (
+        TypeError,
+        ValueError
+    ):
+            return float(padrao)
+
+    def obter_efeito_final(
+    self,
+    efeito_forma,
+    efeito_elemento
+):
+        """
+    Combina os efeitos da forma e do elemento.
+
+    Atualmente o sistema de combate aceita um efeito por ataque.
+    A prioridade é dada ao efeito da forma. Caso ela não possua
+    efeito válido, utiliza o efeito elemental.
+    """
+
+        if (
+        isinstance(efeito_forma, dict)
+        and efeito_forma
+    ):
+
+            nome = self.normalizar(
+            efeito_forma.get("nome")
+        )
+
+            if nome:
+                return dict(efeito_forma)
+
+        if (
+        isinstance(efeito_elemento, dict)
+        and efeito_elemento
+    ):
+
+            nome = self.normalizar(
+            efeito_elemento.get("nome")
+        )
+
+            if nome:
+                return dict(efeito_elemento)
+
+        return {}
+
+# ============================================================
+# COMANDO BASE
+# ============================================================
 
     @commands.group(
-        name="magias",
-        aliases=["magia"],
-        invoke_without_command=True
-    )
+    name="magias",
+    aliases=["magia"],
+    invoke_without_command=True
+)
     async def magias(self, ctx):
 
         embed = discord.Embed(
-            title="🔮 Sistema de Magias",
-            description=(
-                "`!magias list` — Ver suas formas e elementos\n"
-                "`!magias formas` — Ver todas as formas disponíveis\n"
-                "`!magias elementos` — Ver todos os elementos disponíveis\n"
-                "`!magias count` — Ver quantidade de formas\n\n"
-                "`!usarmagia <forma> <elemento>` — Usar uma magia"
-            ),
-            color=discord.Color.purple()
-        )
+        title="🔮 Sistema de Magias",
+        description=(
+            "`!magias list` — Ver suas formas e elementos\n"
+            "`!magias formas` — Ver todas as formas disponíveis\n"
+            "`!magias elementos` — Ver todos os elementos disponíveis\n"
+            "`!magias count` — Ver quantidade de formas\n\n"
+            "`!usarmagia <forma> <elemento>` — Usar magia\n\n"
+            "Durante um combate, a magia será enviada "
+            "automaticamente para o sistema de luta."
+        ),
+        color=discord.Color.purple()
+    )
 
         await ctx.send(embed=embed)
 
-    # ============================================================
-    # !MAGIAS LIST
-    # ============================================================
+# ============================================================
+# !MAGIAS LIST
+# ============================================================
 
     @magias.command(
-        name="list",
-        aliases=["lista", "listar"]
-    )
+    name="list",
+    aliases=["lista", "listar"]
+)
     async def listar_magias(self, ctx):
 
         if ctx.guild is None:
+
             await ctx.send(
-                "❌ Este comando só pode ser usado em um servidor."
-            )
+            "❌ Este comando só pode ser usado em um servidor."
+        )
+
             return
 
         if db is None:
+
             await ctx.send(
-                "❌ Banco de dados não conectado."
-            )
+            "❌ Banco de dados não conectado."
+        )
+
             return
 
         db_magias = DatabaseMagias(db)
 
         doc = db_magias.get_magia_doc(
-            str(ctx.author.id),
-            str(ctx.guild.id)
-        )
+        str(ctx.author.id),
+        str(ctx.guild.id)
+    )
 
         if not doc:
+
             await ctx.send(
-                "❌ Você não possui um documento de magias registrado."
-            )
+            "❌ Você não possui um documento de magias registrado."
+        )
+
             return
 
-        # ========================================================
-        # ESTRUTURA CORRETA:
-        #
-        # magias = FORMAS
-        # tipos = ELEMENTOS
-        # ========================================================
+        formas = doc.get(
+        "magias",
+        []
+    )
 
-        formas = doc.get("magias", [])
-        elementos = doc.get("tipos", [])
+        elementos = doc.get(
+        "tipos",
+        []
+    )
 
         embed = discord.Embed(
-            title=f"🔮 Magias de {ctx.author.display_name}",
-            color=discord.Color.purple()
-        )
+        title=f"🔮 Magias de {ctx.author.display_name}",
+        color=discord.Color.purple()
+    )
 
         embed.set_thumbnail(
-            url=ctx.author.display_avatar.url
-        )
-
-        # --------------------------------------------------------
-        # FORMAS
-        # --------------------------------------------------------
+        url=ctx.author.display_avatar.url
+    )
 
         if formas:
 
-            texto_formas = self.formatar_lista(
-                formas
-            )
-
             embed.add_field(
-                name=f"🔷 Formas ({len(formas)})",
-                value=texto_formas,
-                inline=False
-            )
+            name=f"🔷 Formas ({len(formas)})",
+            value=self.formatar_lista(formas),
+            inline=False
+        )
 
         else:
 
             embed.add_field(
                 name="🔷 Formas (0)",
-                value="Você não possui nenhuma forma.",
-                inline=False
-            )
-
-        # --------------------------------------------------------
-        # ELEMENTOS
-        # --------------------------------------------------------
+            value="Você não possui nenhuma forma.",
+            inline=False
+        )
 
         if elementos:
 
-            texto_elementos = self.formatar_lista(
-                elementos
-            )
-
             embed.add_field(
-                name=f"🌈 Elementos ({len(elementos)})",
-                value=texto_elementos,
-                inline=False
-            )
+            name=f"🌈 Elementos ({len(elementos)})",
+            value=self.formatar_lista(elementos),
+            inline=False
+        )
 
         else:
 
             embed.add_field(
-                name="🌈 Elementos (0)",
-                value="Você não possui nenhum elemento.",
-                inline=False
-            )
+            name="🌈 Elementos (0)",
+            value="Você não possui nenhum elemento.",
+            inline=False
+        )
 
         embed.set_footer(
-            text="Use: !usarmagia <forma> <elemento>"
-        )
+        text="Use: !usarmagia <forma> <elemento>"
+    )
 
         await ctx.send(embed=embed)
 
-    # ============================================================
-    # !MAGIAS COUNT
-    # ============================================================
+# ============================================================
+# !MAGIAS COUNT
+# ============================================================
 
     @magias.command(
-        name="count",
-        aliases=["contar", "quantidade"]
-    )
+    name="count",
+    aliases=["contar", "quantidade"]
+)
     async def contar_magias(self, ctx):
 
         if ctx.guild is None:
+
             await ctx.send(
-                "❌ Este comando só pode ser usado em um servidor."
-            )
+            "❌ Este comando só pode ser usado em um servidor."
+        )
+
             return
 
         if db is None:
+
             await ctx.send(
-                "❌ Banco de dados não conectado."
-            )
+            "❌ Banco de dados não conectado."
+        )
+
             return
 
         db_magias = DatabaseMagias(db)
 
         doc = db_magias.get_magia_doc(
-            str(ctx.author.id),
-            str(ctx.guild.id)
-        )
+        str(ctx.author.id),
+        str(ctx.guild.id)
+    )
 
         if not doc:
+
             await ctx.send(
-                "❌ Você não possui magias registradas."
-            )
-            return
-
-        # magias = FORMAS
-        formas = doc.get("magias", [])
-
-        await ctx.send(
-            f"🔷 {ctx.author.mention}, você possui "
-            f"**{len(formas)} forma(s)**."
+            "❌ Você não possui magias registradas."
         )
 
-    # ============================================================
-    # !MAGIAS FORMAS
-    # ============================================================
+            return
+
+        formas = doc.get(
+        "magias",
+        []
+    )
+
+        elementos = doc.get(
+        "tipos",
+        []
+    )
+
+        await ctx.send(
+        f"🔷 {ctx.author.mention}, você possui "
+        f"**{len(formas)} forma(s)** e "
+        f"**{len(elementos)} elemento(s)**."
+    )
+
+# ============================================================
+# !MAGIAS FORMAS
+# ============================================================
 
     @magias.command(
-        name="formas",
-        aliases=["forma"]
-    )
+    name="formas",
+    aliases=["forma"]
+)
     async def listar_formas(self, ctx):
 
         if db is None:
+
             await ctx.send(
-                "❌ Banco de dados não conectado."
-            )
+            "❌ Banco de dados não conectado."
+        )
+
             return
 
         db_magias = DatabaseMagias(db)
 
-        # Carrega:
-        # database/json/magias/formas.json
         dados = db_magias._carregar_json(
-            db_magias.arquivo_formas
-        )
+        db_magias.arquivo_formas
+    )
 
         formas = self.carregar_catalogo(
-            dados,
-            "formas"
-        )
+        dados,
+        "formas"
+    )
 
         if not formas:
-            await ctx.send(
-                "❌ Nenhuma forma foi encontrada no "
-                "`database/json/magias/formas.json`."
-            )
-            return
 
-        embed = discord.Embed(
-            title="🔷 Formas de Magia",
-            description=(
-                "Todas as formas disponíveis no sistema."
-            ),
-            color=discord.Color.purple()
+            await ctx.send(
+            "❌ Nenhuma forma foi encontrada."
         )
+
+            return
 
         paginas = []
         pagina_atual = ""
@@ -389,45 +444,63 @@ class Magias(commands.Cog):
         for forma in formas:
 
             if not isinstance(forma, dict):
+
                 linha = f"• `{forma}`\n"
 
             else:
 
                 forma_id = forma.get(
-                    "id",
-                    "desconhecida"
-                )
+                "id",
+                "desconhecida"
+            )
 
                 nome = forma.get(
-                    "nome",
-                    forma_id
-                )
+                "nome",
+                forma_id
+            )
 
                 descricao = forma.get(
-                    "descricao",
-                    "Sem descrição."
-                )
+                "descricao",
+                "Sem descrição."
+            )
 
                 mana = forma.get(
-                    "mana_base",
-                    0
-                )
+                "mana_base",
+                0
+            )
 
                 dano = forma.get(
-                    "dano_base",
-                    0
-                )
+                "dano_base",
+                0
+            )
+
+                cura = forma.get(
+                "cura_base",
+                0
+            )
 
                 linha = (
-                    f"**{nome}** (`{forma_id}`)\n"
-                    f"└ {descricao}\n"
-                    f"└ 💠 Mana: `{mana}` | "
-                    f"⚔️ Dano: `{dano}`\n\n"
+                f"**{nome}** (`{forma_id}`)\n"
+                f"└ {descricao}\n"
+                f"└ 💠 Mana: `{mana}` | "
+                f"⚔️ Dano: `{dano}`"
+            )
+
+                if cura:
+                    linha += (
+                    f" | 💚 Cura: `{cura}`"
                 )
 
-            if len(pagina_atual) + len(linha) > 1024:
+                linha += "\n\n"
 
-                paginas.append(
+            if (
+            len(pagina_atual)
+            + len(linha)
+            > 1024
+        ):
+
+                if pagina_atual:
+                    paginas.append(
                     pagina_atual
                 )
 
@@ -439,68 +512,66 @@ class Magias(commands.Cog):
             paginas.append(pagina_atual)
 
         for indice, pagina in enumerate(
-            paginas,
-            start=1
-        ):
+        paginas,
+        start=1
+    ):
 
-            nome_campo = (
-                "📜 Formas"
-                if len(paginas) == 1
-                else f"📜 Formas — Página {indice}"
-            )
+            embed = discord.Embed(
+            title="🔷 Formas de Magia",
+            color=discord.Color.purple()
+        )
 
             embed.add_field(
-                name=nome_campo,
-                value=pagina,
-                inline=False
-            )
+            name=(
+                f"📜 Formas — Página "
+                f"{indice}/{len(paginas)}"
+            ),
+            value=pagina,
+            inline=False
+        )
 
-        embed.set_footer(
+            embed.set_footer(
             text=f"Total: {len(formas)} forma(s)"
         )
 
-        await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
 
-    # ============================================================
-    # !MAGIAS ELEMENTOS
-    # ============================================================
+# ============================================================
+# !MAGIAS ELEMENTOS
+# ============================================================
 
     @magias.command(
-        name="elementos",
-        aliases=["elemento"]
-    )
+    name="elementos",
+    aliases=["elemento"]
+)
     async def listar_elementos(self, ctx):
 
         if db is None:
+
             await ctx.send(
-                "❌ Banco de dados não conectado."
-            )
+            "❌ Banco de dados não conectado."
+        )
+
             return
 
         db_magias = DatabaseMagias(db)
 
-        # Carrega:
-        # database/json/magias/elementos.json
         dados = db_magias._carregar_json(
-            db_magias.arquivo_elementos
-        )
+        db_magias.arquivo_elementos
+    )
 
         elementos = self.carregar_catalogo(
-            dados,
-            "elementos"
-        )
+        dados,
+        "elementos"
+    )
 
         if not elementos:
-            await ctx.send(
-                "❌ Nenhum elemento foi encontrado no "
-                "`database/json/magias/elementos.json`."
-            )
-            return
 
-        embed = discord.Embed(
-            title="🌈 Elementos Mágicos",
-            color=discord.Color.purple()
+            await ctx.send(
+            "❌ Nenhum elemento foi encontrado."
         )
+
+            return
 
         paginas = []
         pagina_atual = ""
@@ -514,34 +585,39 @@ class Magias(commands.Cog):
             else:
 
                 elemento_id = elemento.get(
-                    "id",
-                    "desconhecido"
-                )
+                "id",
+                "desconhecido"
+            )
 
                 nome = elemento.get(
-                    "nome",
-                    elemento_id
-                )
+                "nome",
+                elemento_id
+            )
 
                 descricao = elemento.get(
-                    "descricao",
-                    ""
-                )
+                "descricao",
+                ""
+            )
 
                 linha = (
-                    f"**{nome}** (`{elemento_id}`)"
-                )
+                f"**{nome}** (`{elemento_id}`)"
+            )
 
                 if descricao:
                     linha += (
-                        f"\n└ {descricao}"
-                    )
+                    f"\n└ {descricao}"
+                )
 
                 linha += "\n\n"
 
-            if len(pagina_atual) + len(linha) > 1024:
+            if (
+            len(pagina_atual)
+            + len(linha)
+            > 1024
+        ):
 
-                paginas.append(
+                if pagina_atual:
+                    paginas.append(
                     pagina_atual
                 )
 
@@ -553,69 +629,62 @@ class Magias(commands.Cog):
             paginas.append(pagina_atual)
 
         for indice, pagina in enumerate(
-            paginas,
-            start=1
-        ):
+        paginas,
+        start=1
+    ):
 
-            nome_campo = (
-                "📜 Elementos"
-                if len(paginas) == 1
-                else f"📜 Elementos — Página {indice}"
-            )
+            embed = discord.Embed(
+            title="🌈 Elementos Mágicos",
+            color=discord.Color.purple()
+        )
 
             embed.add_field(
-                name=nome_campo,
-                value=pagina,
-                inline=False
-            )
+            name=(
+                f"📜 Elementos — Página "
+                f"{indice}/{len(paginas)}"
+            ),
+            value=pagina,
+            inline=False
+        )
 
-        embed.set_footer(
+            embed.set_footer(
             text=f"Total: {len(elementos)} elemento(s)"
         )
 
-        await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
 
-    # ============================================================
-    # !USARMAGIA <FORMA> <ELEMENTO>
-    # ============================================================
+# ============================================================
+# !USARMAGIA
+# ============================================================
 
     @commands.command(
-        name="usarmagia",
-        aliases=["usar_magia", "cast"]
-    )
+    name="usarmagia",
+    aliases=[
+        "usar_magia",
+        "cast"
+    ]
+)
     async def usar_magia(
-        self,
-        ctx,
-        forma_id: str,
-        elemento_id: str
-    ):
-
-        """
-        Exemplo:
-
-        !usarmagia bola fogo
-
-        O sistema:
-
-        MongoDB:
-            magias = FORMAS do jogador
-            tipos = ELEMENTOS do jogador
-
-        JSON:
-            formas.json = dados da forma
-            elementos.json = dados do elemento
-        """
+    self,
+    ctx,
+    forma_id: str,
+    elemento_id: str
+):
 
         if ctx.guild is None:
+
             await ctx.send(
-                "❌ Este comando só pode ser usado em um servidor."
-            )
+            "❌ Este comando só pode ser usado em um servidor."
+        )
+
             return
 
         if db is None:
+
             await ctx.send(
-                "❌ Banco de dados não conectado."
-            )
+            "❌ Banco de dados não conectado."
+        )
+
             return
 
         user_id = str(ctx.author.id)
@@ -623,474 +692,521 @@ class Magias(commands.Cog):
 
         forma_id = self.normalizar(
             forma_id
-        )
+    )
 
         elemento_id = self.normalizar(
             elemento_id
-        )
+    )
 
         db_magias = DatabaseMagias(db)
 
-        # ========================================================
-        # BUSCA O DOCUMENTO DO JOGADOR
-        # ========================================================
+    # ========================================================
+    # DOCUMENTO DO JOGADOR
+    # ========================================================
 
         doc = db_magias.get_magia_doc(
-            user_id,
-            guild_id
-        )
+        user_id,
+        guild_id
+    )
 
         if not doc:
 
             await ctx.send(
-                "❌ Você não possui um documento de magias registrado."
-            )
+            "❌ Você não possui um documento de magias registrado."
+        )
 
             return
 
-        # ========================================================
-        # ESTRUTURA DO MONGODB
-        #
-        # "magias": [
-        #     "bola",
-        #     "raio"
-        # ]
-        #
-        # "tipos": [
-        #     "fogo"
-        # ]
-        # ========================================================
-
         formas_jogador = doc.get(
-            "magias",
-            []
-        )
+        "magias",
+        []
+    )
 
         elementos_jogador = doc.get(
-            "tipos",
-            []
-        )
+        "tipos",
+        []
+    )
 
-        # ========================================================
-        # VERIFICA A FORMA
-        # ========================================================
+    # ========================================================
+    # VERIFICAR FORMA
+    # ========================================================
 
-        formas_normalizadas = self.normalizar_lista(
+        formas_normalizadas = (
+        self.normalizar_lista(
             formas_jogador
         )
+    )
 
         if forma_id not in formas_normalizadas:
 
             await ctx.send(
-                f"❌ Você não possui a forma "
-                f"`{forma_id}`.\n\n"
-                f"Use `!magias list` para ver suas formas."
-            )
+            f"❌ Você não possui a forma "
+            f"`{forma_id}`.\n\n"
+            "Use `!magias list` para ver "
+            "suas formas."
+        )
 
             return
 
-        # ========================================================
-        # VERIFICA O ELEMENTO
-        # ========================================================
+    # ========================================================
+    # VERIFICAR ELEMENTO
+    # ========================================================
 
-        elementos_normalizados = self.normalizar_lista(
+        elementos_normalizados = (
+        self.normalizar_lista(
             elementos_jogador
         )
+    )
 
         if elemento_id not in elementos_normalizados:
 
             await ctx.send(
-                f"❌ Você não possui o elemento "
-                f"`{elemento_id}`.\n\n"
-                f"Use `!magias list` para ver seus elementos."
-            )
+            f"❌ Você não possui o elemento "
+            f"`{elemento_id}`.\n\n"
+            "Use `!magias list` para ver "
+            "seus elementos."
+        )
 
             return
 
-        # ========================================================
-        # CARREGA FORMAS.JSON
-        # ========================================================
+    # ========================================================
+    # CARREGAR CATÁLOGO DE FORMAS
+    # ========================================================
 
         dados_formas = db_magias._carregar_json(
-            db_magias.arquivo_formas
-        )
+        db_magias.arquivo_formas
+    )
 
         formas_catalogo = self.carregar_catalogo(
-            dados_formas,
-            "formas"
-        )
+        dados_formas,
+        "formas"
+    )
 
         forma = self.buscar_item(
-            formas_catalogo,
-            forma_id
-        )
+        formas_catalogo,
+        forma_id
+    )
 
         if not forma:
 
             await ctx.send(
-                f"❌ A forma `{forma_id}` está no seu "
-                f"MongoDB, mas não foi encontrada no "
-                f"`formas.json`."
-            )
+            f"❌ A forma `{forma_id}` existe "
+            "no seu registro, mas não foi encontrada "
+            "no catálogo de formas."
+        )
 
             return
 
-        # ========================================================
-        # CARREGA ELEMENTOS.JSON
-        # ========================================================
+        if not isinstance(forma, dict):
 
-        dados_elementos = db_magias._carregar_json(
+            forma = {
+            "id": forma_id,
+            "nome": str(forma)
+        }
+
+    # ========================================================
+    # CARREGAR CATÁLOGO DE ELEMENTOS
+    # ========================================================
+
+        dados_elementos = (
+        db_magias._carregar_json(
             db_magias.arquivo_elementos
         )
+    )
 
-        elementos_catalogo = self.carregar_catalogo(
+        elementos_catalogo = (
+        self.carregar_catalogo(
             dados_elementos,
             "elementos"
         )
+    )
 
         elemento = self.buscar_item(
-            elementos_catalogo,
-            elemento_id
-        )
+        elementos_catalogo,
+        elemento_id
+    )
 
         if not elemento:
 
             await ctx.send(
-                f"❌ O elemento `{elemento_id}` está no seu "
-                f"MongoDB, mas não foi encontrado no "
-                f"`elementos.json`."
-            )
+            f"❌ O elemento `{elemento_id}` existe "
+            "no seu registro, mas não foi encontrado "
+            "no catálogo de elementos."
+        )
 
             return
 
-        # ========================================================
-        # DADOS DA FORMA
-        # ========================================================
+        if not isinstance(elemento, dict):
+
+            elemento = {
+            "id": elemento_id,
+            "nome": str(elemento)
+        }
+
+    # ========================================================
+    # DADOS DA FORMA
+    # ========================================================
 
         forma_nome = forma.get(
-            "nome",
-            forma_id.title()
-        )
+        "nome",
+        forma_id.title()
+    )
 
-        mana_base = forma.get(
+        mana_base = self.converter_numero(
+        forma.get(
             "mana_base",
             0
         )
+    )
 
-        dano_base = forma.get(
+        dano_base = self.converter_numero(
+        forma.get(
             "dano_base",
             0
         )
+    )
 
-        cura_base = forma.get(
+        cura_base = self.converter_numero(
+        forma.get(
             "cura_base",
             0
         )
+    )
 
-        defesa_base = forma.get(
+        defesa_base = self.converter_numero(
+        forma.get(
             "defesa_base",
             0
         )
+    )
 
         alcance = forma.get(
-            "alcance",
-            "Não definido"
-        )
+        "alcance",
+        "Não definido"
+    )
 
         alvo = forma.get(
-            "alvo",
-            "Não definido"
-        )
+        "alvo",
+        "Não definido"
+    )
 
         tipos_forma = forma.get(
-            "tipos",
-            []
-        )
+        "tipos",
+        []
+    )
 
         efeito_forma = forma.get(
-            "efeito",
-            {}
-        )
+        "efeito",
+        {}
+    )
 
-        # ========================================================
-        # DADOS DO ELEMENTO
-        # ========================================================
+    # ========================================================
+    # DADOS DO ELEMENTO
+    # ========================================================
 
         elemento_nome = elemento.get(
-            "nome",
-            elemento_id.title()
-        )
+        "nome",
+        elemento_id.title()
+    )
 
-        # Os valores abaixo são opcionais e dependem
-        # da estrutura do seu elementos.json.
-
-        bonus_dano = elemento.get(
+        bonus_dano = self.converter_numero(
+        elemento.get(
             "bonus_dano",
             elemento.get(
                 "dano_bonus",
                 0
             )
         )
+    )
 
-        bonus_mana = elemento.get(
+        bonus_mana = self.converter_numero(
+        elemento.get(
             "bonus_mana",
             elemento.get(
                 "mana_bonus",
                 0
             )
         )
+    )
 
-        multiplicador_dano = elemento.get(
+        multiplicador_dano = self.converter_numero(
+        elemento.get(
             "multiplicador_dano",
             1
-        )
+        ),
+        1
+    )
+
+        if multiplicador_dano <= 0:
+            multiplicador_dano = 1
 
         efeito_elemento = elemento.get(
-            "efeito",
-            {}
+        "efeito",
+        {}
+    )
+
+    # ========================================================
+    # CÁLCULO FINAL
+    # ========================================================
+
+        dano_final = (
+        dano_base
+        + bonus_dano
+    ) * multiplicador_dano
+
+        mana_final = (
+        mana_base
+        + bonus_mana
+    )
+
+        if mana_final < 0:
+            mana_final = 0
+
+    # Cura é enviada como dano negativo para o sistema
+    # atual de combate.
+        if cura_base > 0 and dano_final <= 0:
+
+            dano_para_combate = (
+            -abs(cura_base)
         )
 
-        # ========================================================
-        # CÁLCULO DA MAGIA
-        # ========================================================
+        else:
 
-        try:
+            dano_para_combate = (
+            dano_final
+        )
 
-            dano_final = (
-                float(dano_base)
-                + float(bonus_dano)
-            ) * float(multiplicador_dano)
+    # ========================================================
+    # EFEITO FINAL
+    # ========================================================
 
-            if dano_final.is_integer():
-                dano_final = int(
-                    dano_final
-                )
+        efeito_final = (
+           self.obter_efeito_final(
+            efeito_forma,
+            efeito_elemento
+        )
+    )
 
-        except (
-            ValueError,
-            TypeError
-        ):
-
-            dano_final = dano_base
-
-        try:
-
-            mana_final = (
-                float(mana_base)
-                + float(bonus_mana)
-            )
-
-            if mana_final.is_integer():
-                mana_final = int(
-                    mana_final
-                )
-
-        except (
-            ValueError,
-            TypeError
-        ):
-
-            mana_final = mana_base
-
-        # ========================================================
-        # NOME FINAL
-        # ========================================================
+    # ========================================================
+    # NOME DA MAGIA
+    # ========================================================
 
         nome_magia = (
-            f"{forma_nome} de {elemento_nome}"
-        )
+        f"{forma_nome} de {elemento_nome}"
+    )
 
-        # ========================================================
-        # EMBED
-        # ========================================================
+    # ========================================================
+    # DADOS ENVIADOS PARA O SISTEMA DE LUTA
+    # ========================================================
+
+        dados_magia = {
+        "nome": nome_magia,
+        "forma": forma_id,
+        "elemento": elemento_nome,
+        "mana_base": mana_final,
+        "dano_base": dano_para_combate,
+        "cura_base": cura_base,
+        "defesa_base": defesa_base,
+        "alcance": alcance,
+        "alvo": alvo,
+        "tipos": tipos_forma,
+        "efeito": efeito_final,
+    }
+
+    # ========================================================
+    # VERIFICAR COMBATE
+    # ========================================================
+
+        luta_cog = self.bot.get_cog(
+        "Luta"
+    )
+
+        if luta_cog:
+
+            try:
+
+                combate_ativo = (
+                luta_cog._combate_ativo(
+                    ctx.channel.id
+                )
+            )
+
+            except Exception:
+
+                combate_ativo = False
+
+            if combate_ativo:
+
+                resultado = (
+                    await luta_cog.usar_magia_no_combate(
+                    ctx,
+                    dados_magia
+                )
+            )
+
+                if resultado:
+                    return
+
+    # ========================================================
+    # MAGIA FORA DE COMBATE
+    # ========================================================
 
         embed = discord.Embed(
-            title="✨ Magia Utilizada",
-            description=(
-                f"{ctx.author.mention} utilizou "
-                f"**{nome_magia}**!"
-            ),
-            color=discord.Color.purple()
-        )
+        title="✨ Magia Preparada",
+        description=(
+            f"{ctx.author.mention} utilizou "
+            f"**{nome_magia}**!"
+        ),
+        color=discord.Color.purple()
+    )
 
         embed.add_field(
-            name="🔷 Forma",
-            value=forma_nome,
-            inline=True
-        )
+        name="🔷 Forma",
+        value=forma_nome,
+        inline=True
+    )
 
         embed.add_field(
-            name="🌈 Elemento",
-            value=elemento_nome,
-            inline=True
-        )
+        name="🌈 Elemento",
+        value=elemento_nome,
+        inline=True
+    )
 
         embed.add_field(
-            name="💠 Mana Base",
-            value=str(mana_final),
-            inline=True
-        )
+        name="💠 Custo de Mana",
+        value=str(int(mana_final)),
+        inline=True
+    )
 
         if dano_final > 0:
 
             embed.add_field(
-                name="⚔️ Dano",
-                value=str(dano_final),
-                inline=True
-            )
+            name="⚔️ Poder",
+            value=str(int(dano_final)),
+            inline=True
+        )
 
         if cura_base > 0:
 
             embed.add_field(
-                name="💚 Cura",
-                value=str(cura_base),
-                inline=True
-            )
+            name="💚 Cura",
+            value=str(int(cura_base)),
+            inline=True
+        )
 
         if defesa_base > 0:
 
             embed.add_field(
-                name="🛡️ Defesa",
-                value=str(defesa_base),
-                inline=True
-            )
-
-        embed.add_field(
-            name="🎯 Alvo",
-            value=str(alvo),
+            name="🛡️ Defesa",
+            value=str(int(defesa_base)),
             inline=True
         )
 
         embed.add_field(
-            name="📏 Alcance",
-            value=str(alcance),
-            inline=True
-        )
+        name="🎯 Alvo",
+        value=str(alvo),
+        inline=True
+    )
 
-        # ========================================================
-        # TIPOS DA FORMA
-        # ========================================================
+        embed.add_field(
+        name="📏 Alcance",
+        value=str(alcance),
+        inline=True
+    )
 
         if tipos_forma:
 
+            texto_tipos = ", ".join(
+            str(tipo)
+            for tipo in tipos_forma
+        )
+
+            if len(texto_tipos) > 1024:
+                texto_tipos = texto_tipos[:1021] + "..."
+
             embed.add_field(
-                name="🏷️ Tipos",
-                value=", ".join(
-                    str(tipo)
-                    for tipo in tipos_forma
-                ),
-                inline=False
-            )
+            name="🏷️ Tipos",
+            value=texto_tipos,
+            inline=False
+        )
 
-        # ========================================================
-        # EFEITO DA FORMA
-        # ========================================================
+        if efeito_final:
 
-        if isinstance(
-            efeito_forma,
-            dict
-        ) and efeito_forma:
-
-            efeito_nome = efeito_forma.get(
+            efeito_nome = (
+                efeito_final.get(
                 "nome",
                 "Efeito"
             )
+        )
 
-            efeito_descricao = efeito_forma.get(
+            efeito_descricao = (
+            efeito_final.get(
                 "descricao",
                 ""
             )
+        )
 
-            efeito_turnos = efeito_forma.get(
+            efeito_turnos = (
+            efeito_final.get(
                 "turnos",
                 0
             )
+        )
 
-            efeito_valor = efeito_forma.get(
+            efeito_valor = (
+            efeito_final.get(
                 "valor",
                 0
             )
+        )
 
             texto_efeito = (
-                f"**{efeito_nome}**"
-            )
+            f"**{efeito_nome}**"
+        )
 
             if efeito_descricao:
 
                 texto_efeito += (
-                    f"\n{efeito_descricao}"
-                )
+                f"\n{efeito_descricao}"
+            )
 
             if efeito_turnos:
 
                 texto_efeito += (
-                    f"\n⏱️ Duração: "
-                    f"`{efeito_turnos}` turno(s)"
-                )
+                f"\n⏱️ Duração: "
+                f"`{efeito_turnos}` turno(s)"
+            )
 
             if efeito_valor:
 
                 texto_efeito += (
-                    f"\n📊 Valor: "
-                    f"`{efeito_valor}`"
-                )
+                f"\n📊 Valor: "
+                f"`{efeito_valor}`"
+            )
 
             embed.add_field(
-                name="✨ Efeito",
-                value=texto_efeito,
-                inline=False
-            )
-
-        # ========================================================
-        # EFEITO DO ELEMENTO
-        # ========================================================
-
-        if isinstance(
-            efeito_elemento,
-            dict
-        ) and efeito_elemento:
-
-            nome_efeito = efeito_elemento.get(
-                "nome",
-                "Efeito Elemental"
-            )
-
-            descricao_efeito = efeito_elemento.get(
-                "descricao",
-                ""
-            )
-
-            texto_elemento = (
-                f"**{nome_efeito}**"
-            )
-
-            if descricao_efeito:
-
-                texto_elemento += (
-                    f"\n{descricao_efeito}"
-                )
-
-            embed.add_field(
-                name="🌈 Efeito Elemental",
-                value=texto_elemento,
-                inline=False
-            )
+            name="✨ Efeito",
+            value=texto_efeito,
+            inline=False
+        )
 
         embed.set_footer(
-            text=(
-                f"Use: !usarmagia "
-                f"<forma> <elemento>"
-            )
+        text=(
+            "Fora de combate, a magia apenas "
+            "é exibida. Em combate, ela consome "
+            "mana e é resolvida pelo sistema de luta."
         )
+    )
 
         await ctx.send(embed=embed)
 
-
 # ============================================================
+
 # SETUP
+
 # ============================================================
 
 async def setup(bot):
     await bot.add_cog(
-        Magias(bot)
-    )
+Magias(bot)
+)

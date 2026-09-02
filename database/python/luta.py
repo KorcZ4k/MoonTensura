@@ -745,32 +745,41 @@ def finalizar_combate(combate):
         in monstros_derrotados
     )
 
-    # --------------------------------------
-    # ENTREGAR RECOMPENSAS
-    # --------------------------------------
+# --------------------------------------
+# ENTREGAR RECOMPENSAS
+# --------------------------------------
 
     for jogador in jogadores_vivos:
 
+    # Adiciona XP ao jogador
         db["Jogadores"].update_one(
-
-            {
-                "ID": jogador["id"],
-                "guild_id": guild_id
-            },
-
-            {
-                "$inc": {
-
-                    "XP": xp_total,
-
-                    "Hunos": hunos_total
-                }
+        {
+            "ID": str(jogador["id"]),
+            "guild_id": str(guild_id)
+        },
+        {
+            "$inc": {
+                "XP": int(xp_total)
             }
-        )
+        }
+    )
 
-    return {
+    # Adiciona Hunos ao jogador
+        db["Hunos"].update_one(
+        {
+            "ID": str(jogador["id"]),
+            "guild_id": str(guild_id)
+        },
+        {
+            "$inc": {
+                "carteira": int(hunos_total)
+            }
+        },
+        upsert=True
+    )
 
-        "xp": xp_total,
 
-        "hunos": hunos_total
-    }
+        return {
+    "xp": int(xp_total),
+    "hunos": int(hunos_total)
+}
