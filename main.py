@@ -89,6 +89,7 @@ async def carregar_extensoes():
     await bot.load_extension("comandos.RPG.magias")
     await bot.load_extension("comandos.ADMINISTRACAO.autorole_commands")
     await bot.load_extension("comandos.RPG.habs")
+    await bot.load_extension("comandos.RPG.usarhab")
     await bot.load_extension("comandos.ADMINISTRACAO.autorole")
     await bot.load_extension("comandos.RPG.status")
     await bot.load_extension("comandos.ECONOMIA.Hunos")
@@ -102,5 +103,3 @@ async def main():
         await bot.start(TOKEN)
 
 asyncio.run(main())
-
-
