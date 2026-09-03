@@ -21,7 +21,7 @@ class MotorEconomiaGlobal:
             "_id": "global", "indice_precos": 100.0, "inflacao_minuto": 0.0,
             "liquidez_ouro": 100000.0, "fluxo_capital": 0.0,
             "balanca_comercial": {}, "taxa_juros": 0.05,
-            "politica_monetaria": "estavel", "ultimo_tick": datetime.now(timezone.utc), "versao": 6
+            "politica_monetaria": "estavel", "ultimo_tick": datetime.now(timezone.utc), "versao": 7
         }}, upsert=True)
 
     @staticmethod
@@ -101,7 +101,13 @@ class MotorEconomiaGlobal:
 
     def ciclo_economico(self):
         estado = self.tick()
-        reposicoes = empresas = inadimplentes = populacoes = 0
+        reposicoes = empresas = inadimplentes = populacoes = eventos_processados = 0
+        try:
+            from comandos.ECONOMIA.GLOBAL.eventos import MotorEventosEconomicos
+            resultado_eventos = MotorEventosEconomicos(self.db, self).processar_eventos()
+            eventos_processados = resultado_eventos.get("processados", 0)
+        except Exception as erro:
+            self.eventos.insert_one({"tipo": "erro_eventos", "erro": str(erro), "criado_em": datetime.now(timezone.utc)})
         try:
             from comandos.ECONOMIA.GLOBAL.producao import MotorProducao
             reposicoes = len(MotorProducao(self.db, self).ciclo_reposicao())
@@ -126,7 +132,8 @@ class MotorEconomiaGlobal:
         except Exception as erro:
             self.eventos.insert_one({"tipo": "erro_populacao", "erro": str(erro), "criado_em": datetime.now(timezone.utc)})
         return {"estado": estado, "reposicoes": reposicoes, "empresas": empresas,
-                "inadimplentes": inadimplentes, "populacoes": populacoes}
+                "inadimplentes": inadimplentes, "populacoes": populacoes,
+                "eventos": eventos_processados}
 
     def relatorio_global(self):
         return self.economia.find_one({"_id": "global"}) or {}
