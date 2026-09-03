@@ -20,32 +20,35 @@ class OrquestradorEconomiaGlobal:
         resultado = self._seguro("ciclo_base", self.motor.ciclo_economico, {})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.producao_automatica import MotorProducaoAutonoma
-        resultado["producao_autonoma"] = self._seguro("producao_autonoma", lambda: MotorProducaoAutonoma(self.db, self.motor).executar_ciclo(), {"empresas_processadas": 0, "empresas_produzindo": 0, "unidades_produzidas": 0, "resultados": []})
+        resultado["producao_autonoma"] = self._seguro("producao_autonoma", lambda: MotorProducaoAutonoma(self.db, self.motor).executar_ciclo(), {})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.mercado_autonomo import MotorMercadoAutonomo
-        resultado["mercado_autonomo"] = self._seguro("mercado_autonomo", lambda: MotorMercadoAutonomo(self.db, self.motor).executar_ciclo(), {"mercados_processados": 0, "precos_aumentados": 0, "precos_reduzidos": 0, "precos_estaveis": 0})
+        resultado["mercado_autonomo"] = self._seguro("mercado_autonomo", lambda: MotorMercadoAutonomo(self.db, self.motor).executar_ciclo(), {})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.rotas_automaticas import MotorRotasAutomaticas
-        resultado["rotas_automaticas"] = self._seguro("rotas_automaticas", lambda: MotorRotasAutomaticas(self.db, self.motor).executar_ciclo(), {"mercados_processados": 0, "oportunidades_identificadas": 0, "rotas_criadas": 0})
+        resultado["rotas_automaticas"] = self._seguro("rotas_automaticas", lambda: MotorRotasAutomaticas(self.db, self.motor).executar_ciclo(), {})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.populacao_npc import MotorPopulacaoNPC
-        resultado["populacao_npc"] = self._seguro("populacao_npc", lambda: MotorPopulacaoNPC(self.db, self.motor).executar_ciclo(), {"populacoes_processadas": 0, "contratacoes": 0, "consumo_estimado_bronze": 0, "resultados": []})
+        resultado["populacao_npc"] = self._seguro("populacao_npc", lambda: MotorPopulacaoNPC(self.db, self.motor).executar_ciclo(), {})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.ciclo_empresarial import MotorCicloEmpresarial
-        resultado["ciclo_empresarial"] = self._seguro("ciclo_empresarial", lambda: MotorCicloEmpresarial(self.db, self.motor).executar_ciclo(), {"empresas_processadas": 0, "expansoes": 0, "recuperacoes": 0, "falencias": 0, "resultados": []})
+        resultado["ciclo_empresarial"] = self._seguro("ciclo_empresarial", lambda: MotorCicloEmpresarial(self.db, self.motor).executar_ciclo(), {})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.sistema_financeiro import MotorFinanceiroAutonomo
-        resultado["sistema_financeiro"] = self._seguro("sistema_financeiro", lambda: MotorFinanceiroAutonomo(self.db, self.motor).executar_ciclo(), {"creditos_processados": 0, "inadimplentes": 0, "quitados": 0, "investimentos": 0, "novos_creditos": 0})
+        resultado["sistema_financeiro"] = self._seguro("sistema_financeiro", lambda: MotorFinanceiroAutonomo(self.db, self.motor).executar_ciclo(), {})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.crises_dinamicas import MotorCrisesDinamicas
-        resultado["crises_dinamicas"] = self._seguro("crises_dinamicas", lambda: MotorCrisesDinamicas(self.db, self.motor).executar_ciclo(), {"guilds_analisadas": 0, "crises_iniciadas": 0, "crises_encerradas": 0, "crises_ativas": 0})
+        resultado["crises_dinamicas"] = self._seguro("crises_dinamicas", lambda: MotorCrisesDinamicas(self.db, self.motor).executar_ciclo(), {})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.comercio_territorial import MotorComercioTerritorial
-        resultado["comercio_territorial"] = self._seguro("comercio_territorial", lambda: MotorComercioTerritorial(self.db, self.motor).executar_ciclo(), {"rotas_processadas": 0, "comercio_internacional": 0, "comercio_inter_reino": 0, "tarifas_estimadas_bronze": 0, "tratados_aplicados": 0})
+        resultado["comercio_territorial"] = self._seguro("comercio_territorial", lambda: MotorComercioTerritorial(self.db, self.motor).executar_ciclo(), {})
 
-        # ETAPA 10 — governo, impostos, tesouro e gastos públicos.
         from comandos.ECONOMIA.GLOBAL.autonomia.governo_e_tesouro import MotorGovernoETesouro
-        resultado["governo_e_tesouro"] = self._seguro("governo_e_tesouro", lambda: MotorGovernoETesouro(self.db, self.motor).executar_ciclo(), {"governos_processados": 0, "receita_total_bronze": 0, "gasto_total_bronze": 0, "saldo_fiscal_bronze": 0})
+        resultado["governo_e_tesouro"] = self._seguro("governo_e_tesouro", lambda: MotorGovernoETesouro(self.db, self.motor).executar_ciclo(), {})
+
+        # ETAPA 11 — recursos naturais, extração e esgotamento.
+        from comandos.ECONOMIA.GLOBAL.autonomia.recursos_naturais import MotorRecursosNaturais
+        resultado["recursos_naturais"] = self._seguro("recursos_naturais", lambda: MotorRecursosNaturais(self.db, self.motor).executar_ciclo(), {"recursos_processados": 0, "unidades_extraidas": 0, "recursos_esgotados": 0, "recursos_em_escassez": 0})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
