@@ -10,13 +10,13 @@ from discord.ext import commands
 from database.python.mongodb import db
 from database.python.Hunos import init_db_hunos
 
-init_db_hunos(db)  # Inicializa o db_hunos global
+init_db_hunos(db)
 
 intents = discord.Intents.all()
 intents.message_content = True
 bot = commands.Bot(
-    command_prefix="!", 
-    intents=intents, 
+    command_prefix="!",
+    intents=intents,
     case_insensitive=True
 )
 
@@ -83,6 +83,7 @@ async def carregar_extensoes():
     await bot.load_extension("comandos.ADMINISTRACAO.configurações")
     await bot.load_extension("comandos.ADMINISTRACAO.moderacao")
     await bot.load_extension("comandos.ADMINISTRACAO.automod")
+    await bot.load_extension("comandos.ADMINISTRACAO.boas_vindas")
 
 
 TOKEN = os.getenv("DISCORD_TOKEN")
