@@ -37,6 +37,19 @@ class OrquestradorEconomiaGlobal:
             },
         )
 
+        # ETAPA 3 — mercados reagem automaticamente à oferta e à demanda.
+        from comandos.ECONOMIA.GLOBAL.autonomia.mercado_autonomo import MotorMercadoAutonomo
+        resultado["mercado_autonomo"] = self._seguro(
+            "mercado_autonomo",
+            lambda: MotorMercadoAutonomo(self.db, self.motor).executar_ciclo(),
+            {
+                "mercados_processados": 0,
+                "precos_aumentados": 0,
+                "precos_reduzidos": 0,
+                "precos_estaveis": 0,
+            },
+        )
+
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro(
             "recuperacao",
