@@ -34,9 +34,12 @@ class OrquestradorEconomiaGlobal:
         from comandos.ECONOMIA.GLOBAL.autonomia.ciclo_empresarial import MotorCicloEmpresarial
         resultado["ciclo_empresarial"] = self._seguro("ciclo_empresarial", lambda: MotorCicloEmpresarial(self.db, self.motor).executar_ciclo(), {"empresas_processadas": 0, "expansoes": 0, "recuperacoes": 0, "falencias": 0, "resultados": []})
 
-        # ETAPA 7 — crédito, juros, inadimplência e reinvestimentos.
         from comandos.ECONOMIA.GLOBAL.autonomia.sistema_financeiro import MotorFinanceiroAutonomo
         resultado["sistema_financeiro"] = self._seguro("sistema_financeiro", lambda: MotorFinanceiroAutonomo(self.db, self.motor).executar_ciclo(), {"creditos_processados": 0, "inadimplentes": 0, "quitados": 0, "investimentos": 0, "novos_creditos": 0})
+
+        # ETAPA 8 — crises e recuperações econômicas dinâmicas.
+        from comandos.ECONOMIA.GLOBAL.autonomia.crises_dinamicas import MotorCrisesDinamicas
+        resultado["crises_dinamicas"] = self._seguro("crises_dinamicas", lambda: MotorCrisesDinamicas(self.db, self.motor).executar_ciclo(), {"guilds_analisadas": 0, "crises_iniciadas": 0, "crises_encerradas": 0, "crises_ativas": 0})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
