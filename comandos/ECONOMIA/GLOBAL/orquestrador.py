@@ -25,33 +25,20 @@ class OrquestradorEconomiaGlobal:
         resultado = self._seguro("ciclo_base", self.motor.ciclo_economico, {})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.producao_automatica import MotorProducaoAutonoma
-        resultado["producao_autonoma"] = self._seguro(
-            "producao_autonoma",
-            lambda: MotorProducaoAutonoma(self.db, self.motor).executar_ciclo(),
-            {"empresas_processadas": 0, "empresas_produzindo": 0, "unidades_produzidas": 0, "resultados": []},
-        )
+        resultado["producao_autonoma"] = self._seguro("producao_autonoma", lambda: MotorProducaoAutonoma(self.db, self.motor).executar_ciclo(), {"empresas_processadas": 0, "empresas_produzindo": 0, "unidades_produzidas": 0, "resultados": []})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.mercado_autonomo import MotorMercadoAutonomo
-        resultado["mercado_autonomo"] = self._seguro(
-            "mercado_autonomo",
-            lambda: MotorMercadoAutonomo(self.db, self.motor).executar_ciclo(),
-            {"mercados_processados": 0, "precos_aumentados": 0, "precos_reduzidos": 0, "precos_estaveis": 0},
-        )
+        resultado["mercado_autonomo"] = self._seguro("mercado_autonomo", lambda: MotorMercadoAutonomo(self.db, self.motor).executar_ciclo(), {"mercados_processados": 0, "precos_aumentados": 0, "precos_reduzidos": 0, "precos_estaveis": 0})
 
         from comandos.ECONOMIA.GLOBAL.autonomia.rotas_automaticas import MotorRotasAutomaticas
-        resultado["rotas_automaticas"] = self._seguro(
-            "rotas_automaticas",
-            lambda: MotorRotasAutomaticas(self.db, self.motor).executar_ciclo(),
-            {"mercados_processados": 0, "oportunidades_identificadas": 0, "rotas_criadas": 0},
-        )
+        resultado["rotas_automaticas"] = self._seguro("rotas_automaticas", lambda: MotorRotasAutomaticas(self.db, self.motor).executar_ciclo(), {"mercados_processados": 0, "oportunidades_identificadas": 0, "rotas_criadas": 0})
 
-        # ETAPA 5 — população NPC, emprego, renda e consumo.
         from comandos.ECONOMIA.GLOBAL.autonomia.populacao_npc import MotorPopulacaoNPC
-        resultado["populacao_npc"] = self._seguro(
-            "populacao_npc",
-            lambda: MotorPopulacaoNPC(self.db, self.motor).executar_ciclo(),
-            {"populacoes_processadas": 0, "contratacoes": 0, "consumo_estimado_bronze": 0, "resultados": []},
-        )
+        resultado["populacao_npc"] = self._seguro("populacao_npc", lambda: MotorPopulacaoNPC(self.db, self.motor).executar_ciclo(), {"populacoes_processadas": 0, "contratacoes": 0, "consumo_estimado_bronze": 0, "resultados": []})
+
+        # ETAPA 6 — concorrência, expansão, recuperação e falências.
+        from comandos.ECONOMIA.GLOBAL.autonomia.ciclo_empresarial import MotorCicloEmpresarial
+        resultado["ciclo_empresarial"] = self._seguro("ciclo_empresarial", lambda: MotorCicloEmpresarial(self.db, self.motor).executar_ciclo(), {"empresas_processadas": 0, "expansoes": 0, "recuperacoes": 0, "falencias": 0, "resultados": []})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
