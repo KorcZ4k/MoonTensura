@@ -37,7 +37,7 @@ class Nascimento(commands.Cog):
         return []
 
     def _sortear_repetidamente(self, catalogo, chance_inicial):
-        """Cada habilidade obtida reduz a chance seguinte pela metade."""
+        """Cada obtenção reduz pela metade a chance da próxima."""
         if chance_inicial <= 0 or not catalogo:
             return []
 
@@ -55,8 +55,6 @@ class Nascimento(commands.Cog):
 
     def _sortear_habilidades(self, raca):
         resultado = []
-
-        # A primeira habilidade comum segue o exemplo definido: 100%.
         chances = {
             "Comum": 1.0,
             "Única": 0.3,
@@ -65,20 +63,16 @@ class Nascimento(commands.Cog):
         }
 
         for raridade, chance in chances.items():
-            catalogo = self._carregar_lista(
-                ARQUIVO_HABILIDADES[raridade]
-            )
-            resultado.extend(
-                self._sortear_repetidamente(catalogo, chance)
-            )
+            catalogo = self._carregar_lista(ARQUIVO_HABILIDADES[raridade])
+            resultado.extend(self._sortear_repetidamente(catalogo, chance))
 
-        # Habilidades raciais são todas as que correspondem à raça,
-        # com 100% de obtenção.
         raciais = self._carregar_lista(ARQUIVO_HABILIDADES["Raça"])
         raca_normalizada = str(raca).strip().lower()
 
         for habilidade in raciais:
-            racas = habilidade.get("racas", []) if isinstance(habilidade, dict) else []
+            if not isinstance(habilidade, dict):
+                continue
+            racas = habilidade.get("racas", [])
             if any(str(item).strip().lower() == raca_normalizada for item in racas):
                 resultado.append(habilidade)
 
@@ -87,7 +81,9 @@ class Nascimento(commands.Cog):
         for habilidade in resultado:
             if not isinstance(habilidade, dict):
                 continue
-            habilidade_id = str(habilidade.get("ID") or habilidade.get("id") or "").strip()
+            habilidade_id = str(
+                habilidade.get("ID") or habilidade.get("id") or ""
+            ).strip()
             if habilidade_id and habilidade_id not in vistos:
                 vistos.add(habilidade_id)
                 ids.append(habilidade_id)
@@ -101,27 +97,15 @@ class Nascimento(commands.Cog):
         forma = random.choice(formas) if formas else None
         elemento = random.choice(elementos) if elementos else None
 
-        forma_id = None
-        elemento_id = None
+        def obter_id(item):
+            if isinstance(item, dict):
+                return str(item.get("id") or item.get("ID") or "").strip() or None
+            return str(item).strip() if item else None
 
-        if isinstance(forma, dict):
-            forma_id = str(forma.get("id") or forma.get("ID") or "").strip()
-        elif forma:
-            forma_id = str(forma).strip()
+        return obter_id(forma), obter_id(elemento)
 
-        if isinstance(elemento, dict):
-            elemento_id = str(elemento.get("id") or elemento.get("ID") or "").strip()
-        elif elemento:
-            elemento_id = str(elemento).strip()
-
-        return forma_id, elemento_id
-
-    @commands.Cog.listener()
-    async def on_command_completion(self, ctx):
-        if not ctx.guild or ctx.command is None:
-            return
-
-        if ctx.command.name != "registrar":
+    async def _aplicar_dadivas(self, ctx):
+        if not ctx.guild:
             return
 
         jogador = db["Jogadores"].find_one({
@@ -132,54 +116,40 @@ class Nascimento(commands.Cog):
         if not jogador or jogador.get("Situação") != "ativo":
             return
 
-        # Impede novo sorteio se o comando for usado novamente.
         if jogador.get("nascimento_sorteado"):
             return
 
         habilidades = self._sortear_habilidades(jogador.get("Raça", ""))
         forma_id, elemento_id = self._sortear_magias()
+        filtro = {
+            "ID": str(ctx.author.id),
+            "guild_id": str(ctx.guild.id),
+        }
 
         db["Habilidades"].update_one(
+            filtro,
             {
-                "ID": str(ctx.author.id),
-                "guild_id": str(ctx.guild.id),
-            },
-            {
-                "$setOnInsert": {
-                    "ID": str(ctx.author.id),
-                    "guild_id": str(ctx.guild.id),
+                "$set": {
                     "Situação": "ativo",
+                    "habilidades": habilidades,
                 },
-                "$addToSet": {
-                    "habilidades": {"$each": habilidades}
-                },
+                "$setOnInsert": filtro,
             },
             upsert=True,
         )
 
-        update_magias = {
-            "$setOnInsert": {
-                "ID": str(ctx.author.id),
-                "guild_id": str(ctx.guild.id),
-                "Situação": "ativo",
-                "magias": [],
-                "tipos": [],
-            }
-        }
-        add_to_set = {}
-        if forma_id:
-            add_to_set["magias"] = forma_id
-        if elemento_id:
-            add_to_set["tipos"] = elemento_id
-        if add_to_set:
-            update_magias["$addToSet"] = add_to_set
-
+        magias = [forma_id] if forma_id else []
+        tipos = [elemento_id] if elemento_id else []
         db["Magias"].update_one(
+            filtro,
             {
-                "ID": str(ctx.author.id),
-                "guild_id": str(ctx.guild.id),
+                "$set": {
+                    "Situação": "ativo",
+                    "magias": magias,
+                    "tipos": tipos,
+                },
+                "$setOnInsert": filtro,
             },
-            update_magias,
             upsert=True,
         )
 
@@ -190,7 +160,10 @@ class Nascimento(commands.Cog):
 
         embed = discord.Embed(
             title="✨ Dádivas do Nascimento",
-            description=f"{ctx.author.mention}, suas características iniciais foram despertadas.",
+            description=(
+                f"{ctx.author.mention}, suas habilidades e afinidades "
+                "iniciais foram sorteadas automaticamente."
+            ),
             color=discord.Color.gold(),
             timestamp=discord.utils.utcnow(),
         )
@@ -211,6 +184,47 @@ class Nascimento(commands.Cog):
         )
         embed.set_thumbnail(url=ctx.author.display_avatar.url)
         await ctx.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_command_completion(self, ctx):
+        if not ctx.guild or ctx.command is None:
+            return
+
+        comando = ctx.command.name
+
+        if comando == "registrar":
+            await self._aplicar_dadivas(ctx)
+            return
+
+        if comando != "desregistrar":
+            return
+
+        # O comando de desregistro já confirmou a operação com sucesso.
+        membro = ctx.message.mentions[0] if ctx.message.mentions else None
+        if membro is None:
+            return
+
+        filtro = {
+            "ID": str(membro.id),
+            "guild_id": str(ctx.guild.id),
+        }
+
+        # Remove integralmente os dados ligados ao personagem anterior.
+        db["Magias"].delete_one(filtro)
+        db["Habilidades"].delete_one(filtro)
+        db["Hunos"].delete_one(filtro)
+
+        # Permite que um novo !registrar gere novas habilidades,
+        # formas e elementos para a nova ficha.
+        db["Jogadores"].update_one(
+            filtro,
+            {"$set": {"nascimento_sorteado": False}}
+        )
+
+        print(
+            f"🧹 Dados de nascimento removidos para "
+            f"{membro.id} no servidor {ctx.guild.id}."
+        )
 
 
 async def setup(bot):
