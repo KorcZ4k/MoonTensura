@@ -31,14 +31,10 @@ async def on_member_join(member):
 
 @bot.event
 async def on_ready():
-    fuso_horario = datetime.timezone(
-        datetime.timedelta(hours=-3)
-    )
+    fuso_horario = datetime.timezone(datetime.timedelta(hours=-3))
     agora = datetime.datetime.now(fuso_horario)
     canal = bot.get_channel(1543040912912031775)
-
     print(f"Bot conectado como {bot.user}")
-
     if canal is not None:
         embed = discord.Embed(
             title="🟢 | Online",
@@ -46,17 +42,8 @@ async def on_ready():
             colour=0x1caa00,
             timestamp=agora
         )
-        embed.set_footer(
-            text="Tensura Moon - Korczak Technologies!"
-        )
-        embed.set_image(
-            url="https://media.discordapp.net/attachments/1543063886939299962/1543433478698303538/ChatGPT_Image_29_de_ago._de_2026_18_39_01.png?ex=6a94d9f0&is=6a938870&hm=5b141470e3d4d538c901485d7140ca4ab34cc0307416a0866780e0b499d477ee&=&format=webp&quality=lossless&width=512&height=205"
-        )
-        embed.set_thumbnail(
-            url="https://images-ext-1.discordapp.net/external/j5-V2MwaKBAxY7K-MYenUED_J6Nwldmze46JyyboRNE/%3Fsize%3D2048/https/cdn.discordapp.com/avatars/1543048534280900609/9ba9969adb274a158a2199c952997fe4.png?format=webp&quality=lossless&width=384&height=384"
-        )
+        embed.set_footer(text="Tensura Moon - Korczak Technologies!")
         await canal.send(embed=embed)
-
     for guild in bot.guilds:
         membros = [member for member in guild.members if not member.bot]
         quantidade = cadastro(membros)
@@ -82,6 +69,7 @@ async def carregar_extensoes():
     await bot.load_extension("comandos.ECONOMIA.Mora")
     await bot.load_extension("comandos.ECONOMIA.recompensas")
     await bot.load_extension("comandos.ECONOMIA.hunos_interacoes")
+    await bot.load_extension("comandos.ECONOMIA.GLOBAL.comandos")
 
     await bot.load_extension("comandos.ADMINISTRACAO.autorole_commands")
     await bot.load_extension("comandos.ADMINISTRACAO.autorole")
