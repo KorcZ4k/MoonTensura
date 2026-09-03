@@ -6,6 +6,7 @@ from .producao import MotorProducao
 from .governo import MotorGoverno
 from .populacao import MotorPopulacao
 from .comercio import MotorComercioInternacional
+from .eventos import MotorEventosEconomicos
 
 
 class EconomiaGlobal(commands.Cog):
@@ -16,6 +17,7 @@ class EconomiaGlobal(commands.Cog):
         self.governo = MotorGoverno(db, self.motor)
         self.populacao = MotorPopulacao(db, self.motor)
         self.comercio = MotorComercioInternacional(db, self.motor, self.governo)
+        self.eventos = MotorEventosEconomicos(db, self.motor)
         self.ciclo_economico.start()
 
     def cog_unload(self):
@@ -25,11 +27,41 @@ class EconomiaGlobal(commands.Cog):
     async def ciclo_economico(self):
         resultado = self.motor.ciclo_economico()
         estado = resultado.get("estado", {})
-        print(f"🌐 Ciclo econômico: índice={estado.get('indice_precos', 0):.4f} | reposição={resultado.get('reposicoes', 0)} | empresas={resultado.get('empresas', 0)} | inadimplentes={resultado.get('inadimplentes', 0)} | populações={resultado.get('populacoes', 0)}")
+        print(f"🌐 Ciclo econômico: índice={estado.get('indice_precos', 0):.4f} | reposição={resultado.get('reposicoes', 0)} | empresas={resultado.get('empresas', 0)} | inadimplentes={resultado.get('inadimplentes', 0)} | populações={resultado.get('populacoes', 0)} | eventos={resultado.get('eventos', 0)}")
 
     @ciclo_economico.before_loop
     async def antes_ciclo(self):
         await self.bot.wait_until_ready()
+
+    @commands.command(name="criar_evento_economico", aliases=["evento_economico"])
+    @commands.has_permissions(administrator=True)
+    async def criar_evento_economico(self, ctx, tipo: str, intensidade: float, duracao: int = 60):
+        resultado = self.eventos.criar_evento(ctx.guild.id, tipo, intensidade / 100, duracao)
+        if "erro" in resultado:
+            tipos = ", ".join(self.eventos.TIPOS.keys())
+            await ctx.send(f"❌ Evento inválido. Tipos disponíveis: `{tipos}`")
+            return
+        embed = discord.Embed(title="📉 Evento econômico iniciado", color=discord.Color.orange())
+        embed.add_field(name="Tipo", value=resultado["tipo"].replace("_", " ").title())
+        embed.add_field(name="Intensidade", value=f"{resultado['intensidade'] * 100:.2f}%")
+        embed.add_field(name="Duração", value=f"{resultado['duracao_ciclos']} ciclos")
+        embed.add_field(name="Efeito", value=resultado["descricao"], inline=False)
+        await ctx.send(embed=embed)
+
+    @commands.command(name="eventos_economicos", aliases=["eventos"])
+    async def eventos_economicos(self, ctx):
+        eventos = self.eventos.eventos_ativos(ctx.guild.id)
+        if not eventos:
+            await ctx.send("📊 Não existem eventos econômicos ativos neste governo.")
+            return
+        embed = discord.Embed(title="⚠️ Eventos Econômicos Ativos", color=discord.Color.orange())
+        for evento in eventos[:20]:
+            embed.add_field(
+                name=evento["tipo"].replace("_", " ").title(),
+                value=f"Intensidade: **{evento['intensidade'] * 100:.2f}%**\nCiclos restantes: **{evento['ciclos_restantes']}**",
+                inline=False,
+            )
+        await ctx.send(embed=embed)
 
     @commands.command(name="configurar_rota")
     @commands.has_permissions(administrator=True)
