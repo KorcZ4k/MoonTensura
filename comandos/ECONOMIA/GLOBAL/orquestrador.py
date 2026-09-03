@@ -45,10 +45,12 @@ class OrquestradorEconomiaGlobal:
         resultado["diplomacia_economica"] = self._seguro("diplomacia_economica", lambda: MotorDiplomaciaEconomica(self.db, self.motor).executar_ciclo(), {"sancoes_processadas": 0, "rotas_bloqueadas": 0, "tratados_processados": 0, "rotas_beneficiadas": 0})
         from comandos.ECONOMIA.GLOBAL.autonomia.evolucao_territorial import MotorEvolucaoTerritorial
         resultado["evolucao_territorial"] = self._seguro("evolucao_territorial", lambda: MotorEvolucaoTerritorial(self.db, self.motor).executar_ciclo(), {"territorios_processados": 0, "territorios_em_crescimento": 0, "territorios_em_declinio": 0, "prosperidade_media": 0})
-
-        # ETAPA 15 — moeda Hunos e circulação econômica padronizada.
         from comandos.ECONOMIA.GLOBAL.autonomia.circulacao_monetaria import MotorCirculacaoMonetaria
         resultado["circulacao_monetaria"] = self._seguro("circulacao_monetaria", lambda: MotorCirculacaoMonetaria(self.db, self.motor).executar_ciclo(), {"empresas_normalizadas": 0, "capital_em_bronze": 0, "governos_normalizados": 0, "tesouro_em_bronze": 0})
+
+        # ETAPA 16 — empresas NPC tomam decisões econômicas próprias.
+        from comandos.ECONOMIA.GLOBAL.autonomia.empresas_npc_avancadas import MotorEmpresasNPCAvancadas
+        resultado["empresas_npc_avancadas"] = self._seguro("empresas_npc_avancadas", lambda: MotorEmpresasNPCAvancadas(self.db, self.motor).executar_ciclo(), {"empresas_processadas": 0, "empresas_expandidas": 0, "empresas_reduzidas": 0, "empresas_em_competicao": 0, "empresas_falidas": 0, "empresas_de_jogadores_ignoradas": 0})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
