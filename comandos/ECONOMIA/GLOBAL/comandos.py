@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 from database.python.mongodb import db
 from .motor import MotorEconomiaGlobal
 from .producao import MotorProducao
+from .governo import MotorGoverno
 
 
 class EconomiaGlobal(commands.Cog):
@@ -10,6 +11,7 @@ class EconomiaGlobal(commands.Cog):
         self.bot = bot
         self.motor = MotorEconomiaGlobal(db)
         self.producao = MotorProducao(db, self.motor)
+        self.governo = MotorGoverno(db, self.motor)
         self.ciclo_economico.start()
 
     def cog_unload(self):
@@ -19,7 +21,7 @@ class EconomiaGlobal(commands.Cog):
     async def ciclo_economico(self):
         resultado = self.motor.ciclo_economico()
         estado = resultado.get("estado", {})
-        print(f"🌐 Ciclo econômico: índice={estado.get('indice_precos', 0):.4f} | reposição={resultado.get('reposicoes', 0)}")
+        print(f"🌐 Ciclo econômico: índice={estado.get('indice_precos', 0):.4f} | reposição={resultado.get('reposicoes', 0)} | empresas={resultado.get('empresas', 0)} | inadimplentes={resultado.get('inadimplentes', 0)}")
 
     @ciclo_economico.before_loop
     async def antes_ciclo(self):
@@ -54,6 +56,50 @@ class EconomiaGlobal(commands.Cog):
         embed.add_field(name="Logística", value=self.motor.formatar_moeda(custo["logistica"]), inline=True)
         await ctx.send(embed=embed)
 
+    @commands.command(name="criar_governo")
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def criar_governo(self, ctx, nome: str, tesouro_bronze: float = 0):
+        resultado = self.governo.criar_governo(ctx.guild.id, nome, tesouro_bronze)
+        await ctx.send(embed=discord.Embed(title="🏛️ Governo criado", description=f"**{resultado['nome']}**\nTesouro inicial: {self.motor.formatar_moeda(tesouro_bronze)}", color=discord.Color.green()))
+
+    @commands.command(name="definir_imposto")
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def definir_imposto(self, ctx, tipo: str, percentual: float):
+        resultado = self.governo.definir_imposto(ctx.guild.id, tipo, percentual / 100)
+        if "erro" in resultado:
+            await ctx.send("❌ Tipo de imposto inválido. Use: venda, renda, empresa, importacao, exportacao ou propriedade.")
+            return
+        await ctx.send(embed=discord.Embed(title="📜 Imposto atualizado", description=f"**{tipo.capitalize()}**: {percentual:.2f}%", color=discord.Color.gold()))
+
+    @commands.command(name="definir_tarifa")
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def definir_tarifa(self, ctx, tipo: str, percentual: float):
+        resultado = self.governo.definir_tarifa(ctx.guild.id, tipo, percentual / 100)
+        if "erro" in resultado:
+            await ctx.send("❌ Tipo inválido. Use: importacao ou exportacao.")
+            return
+        await ctx.send(embed=discord.Embed(title="🚢 Tarifa comercial atualizada", description=f"**{tipo.capitalize()}**: {percentual:.2f}%", color=discord.Color.gold()))
+
+    @commands.command(name="tesouro")
+    @commands.guild_only()
+    async def tesouro(self, ctx):
+        dados = self.governo.relatorio(ctx.guild.id)
+        if "erro" in dados:
+            await ctx.send("❌ Este servidor ainda não possui um governo econômico configurado.")
+            return
+        governo = dados["governo"]; tesouro = dados["tesouro"]
+        embed = discord.Embed(title=f"🏛️ Tesouro — {governo['nome']}", color=discord.Color.gold())
+        embed.add_field(name="Saldo", value=self.motor.formatar_moeda(tesouro.get("saldo_bronze", 0)), inline=False)
+        embed.add_field(name="Receita acumulada", value=self.motor.formatar_moeda(tesouro.get("receita_total_bronze", 0)))
+        embed.add_field(name="Gasto acumulado", value=self.motor.formatar_moeda(tesouro.get("gasto_total_bronze", 0)))
+        taxas = governo.get("taxas", {})
+        texto = "\n".join(f"{nome}: {valor * 100:.2f}%" for nome, valor in taxas.items()) or "Nenhuma"
+        embed.add_field(name="Impostos", value=texto, inline=False)
+        await ctx.send(embed=embed)
+
     @commands.command(name="mercado")
     @commands.guild_only()
     async def mercado(self, ctx):
@@ -61,8 +107,7 @@ class EconomiaGlobal(commands.Cog):
         if not mercado:
             await ctx.send("❌ Este canal ainda não é um mercado configurado.")
             return
-        receitas = float(mercado.get("receita_bronze", 0))
-        custos = float(mercado.get("custos_operacionais_bronze", 0))
+        receitas = float(mercado.get("receita_bronze", 0)); custos = float(mercado.get("custos_operacionais_bronze", 0))
         embed = discord.Embed(title="📊 Mercado Local", color=discord.Color.gold())
         embed.add_field(name="Tipo", value=f"{mercado['tipo'].capitalize()} — {mercado.get('categoria', 'comum')}")
         embed.add_field(name="Demanda", value=str(round(mercado.get("demanda", 0), 2)))
