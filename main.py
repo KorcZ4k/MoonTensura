@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from database.python.mongodb import db
 from database.python.Hunos import init_db_hunos
+from comandos.ECONOMIA.GLOBAL.ciclo_automatico import configurar_ciclo_economico
 
 init_db_hunos(db)
 
@@ -36,6 +37,11 @@ async def on_ready():
         membros = [member for member in guild.members if not member.bot]
         quantidade = cadastro(membros)
         print(f"{guild.name}: {quantidade} usuários processados.")
+
+    ciclo = configurar_ciclo_economico(bot, db, intervalo_segundos=60)
+    if not getattr(ciclo, "_ativo", False):
+        await ciclo.iniciar()
+        print("Ciclo econômico global automático iniciado: intervalo de 60 segundos.")
 
 
 async def carregar_extensoes():
