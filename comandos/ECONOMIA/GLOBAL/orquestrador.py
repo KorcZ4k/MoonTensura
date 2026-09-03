@@ -41,10 +41,12 @@ class OrquestradorEconomiaGlobal:
         resultado["recursos_naturais"] = self._seguro("recursos_naturais", lambda: MotorRecursosNaturais(self.db, self.motor).executar_ciclo(), {"recursos_processados": 0, "unidades_extraidas": 0, "recursos_esgotados": 0, "recursos_em_escassez": 0})
         from comandos.ECONOMIA.GLOBAL.autonomia.guerra_e_economia import MotorGuerraEEconomia
         resultado["guerra_e_economia"] = self._seguro("guerra_e_economia", lambda: MotorGuerraEEconomia(self.db, self.motor).executar_ciclo(), {"conflitos_processados": 0, "empresas_afetadas": 0, "rotas_interrompidas": 0, "recursos_perdidos": 0})
-
-        # ETAPA 13 — diplomacia, tratados, sanções e embargos econômicos.
         from comandos.ECONOMIA.GLOBAL.autonomia.diplomacia_economica import MotorDiplomaciaEconomica
         resultado["diplomacia_economica"] = self._seguro("diplomacia_economica", lambda: MotorDiplomaciaEconomica(self.db, self.motor).executar_ciclo(), {"sancoes_processadas": 0, "rotas_bloqueadas": 0, "tratados_processados": 0, "rotas_beneficiadas": 0})
+
+        # ETAPA 14 — crescimento, prosperidade e decadência dos territórios.
+        from comandos.ECONOMIA.GLOBAL.autonomia.evolucao_territorial import MotorEvolucaoTerritorial
+        resultado["evolucao_territorial"] = self._seguro("evolucao_territorial", lambda: MotorEvolucaoTerritorial(self.db, self.motor).executar_ciclo(), {"territorios_processados": 0, "territorios_em_crescimento": 0, "territorios_em_declinio": 0, "prosperidade_media": 0})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
