@@ -11,14 +11,18 @@ class ComercioInternacional(commands.Cog):
         self.motor = MotorEconomiaGlobal(db)
         self.comercio = MotorComercioInternacional(db, self.motor)
 
-    @commands.command(name="configurar_rota")
+    # Nome específico para evitar colisão com comandos de configuração de rotas de outros sistemas.
+    @commands.command(name="configurar_rota_comercial", aliases=["rota_comercial"])
     @commands.has_permissions(administrator=True)
     async def configurar_rota(self, ctx, origem: str, destino: str, modelo: str = "tradicional", distancia: float = 1, tarifa: float = 0, risco: float = 0):
         r = self.comercio.configurar_rota(origem, destino, modelo, distancia, tarifa, risco)
         if "erro" in r:
-            await ctx.send(embed=discord.Embed(title="❌ Rota", description="Modelo inválido.", color=discord.Color.red())); return
+            await ctx.send(embed=discord.Embed(title="❌ Rota", description="Modelo inválido.", color=discord.Color.red()))
+            return
         e = discord.Embed(title="🛣️ Rota Comercial Configurada", color=discord.Color.green())
-        e.add_field(name="Origem", value=origem); e.add_field(name="Destino", value=destino); e.add_field(name="Modelo", value=modelo)
+        e.add_field(name="Origem", value=origem)
+        e.add_field(name="Destino", value=destino)
+        e.add_field(name="Modelo", value=modelo)
         e.add_field(name="Custo Logístico Base", value=f"{r['custo_logistico_base'] * 100:.0f}%")
         await ctx.send(embed=e)
 
@@ -45,7 +49,8 @@ class ComercioInternacional(commands.Cog):
     async def cambio(self, ctx, valor: float, origem: str, destino: str):
         r = self.comercio.converter(valor, origem, destino)
         if "erro" in r:
-            await ctx.send(embed=discord.Embed(title="❌ Câmbio", description="Moeda não configurada.", color=discord.Color.red())); return
+            await ctx.send(embed=discord.Embed(title="❌ Câmbio", description="Moeda não configurada.", color=discord.Color.red()))
+            return
         await ctx.send(embed=discord.Embed(title="💱 Conversão", description=f"**{valor:,.2f} {origem.upper()}** → **{r['valor']:,.2f} {destino.upper()}**\nEquivalente: **{self.motor.formatar_moeda(r['bronze_equivalente'])}**", color=discord.Color.blue()))
 
     @commands.command(name="balanca_comercial", aliases=["balanca"])
