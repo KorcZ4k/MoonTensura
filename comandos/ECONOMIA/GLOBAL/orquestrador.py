@@ -29,6 +29,7 @@ class OrquestradorEconomiaGlobal:
             ("crises_dinamicas", "comandos.ECONOMIA.GLOBAL.autonomia.crises_dinamicas", "MotorCrisesDinamicas", "executar_ciclo"),
             ("comercio_territorial", "comandos.ECONOMIA.GLOBAL.autonomia.comercio_territorial", "MotorComercioTerritorial", "executar_ciclo"),
             ("governo_e_tesouro", "comandos.ECONOMIA.GLOBAL.autonomia.governo_e_tesouro", "MotorGovernoETesouro", "executar_ciclo"),
+            ("governo_autonomo", "comandos.ECONOMIA.GLOBAL.autonomia.governo_autonomo", "MotorGovernoAutonomo", "executar_ciclo"),
             ("recursos_naturais", "comandos.ECONOMIA.GLOBAL.autonomia.recursos_naturais", "MotorRecursosNaturais", "executar_ciclo"),
             ("guerra_e_economia", "comandos.ECONOMIA.GLOBAL.autonomia.guerra_e_economia", "MotorGuerraEEconomia", "executar_ciclo"),
             ("diplomacia_economica", "comandos.ECONOMIA.GLOBAL.autonomia.diplomacia_economica", "MotorDiplomaciaEconomica", "executar_ciclo"),
