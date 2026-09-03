@@ -14,19 +14,12 @@ init_db_hunos(db)
 
 intents = discord.Intents.all()
 intents.message_content = True
-bot = commands.Bot(
-    command_prefix="!",
-    intents=intents,
-    case_insensitive=True
-)
+bot = commands.Bot(command_prefix="!", intents=intents, case_insensitive=True)
 
 
 @bot.event
 async def on_member_join(member):
-    cadastro(
-        user_id=member.id,
-        guild_id=member.guild.id
-    )
+    cadastro(user_id=member.id, guild_id=member.guild.id)
 
 
 @bot.event
@@ -36,12 +29,7 @@ async def on_ready():
     canal = bot.get_channel(1543040912912031775)
     print(f"Bot conectado como {bot.user}")
     if canal is not None:
-        embed = discord.Embed(
-            title="🟢 | Online",
-            description="Moon Tensura está online e pronto para o RPG",
-            colour=0x1caa00,
-            timestamp=agora
-        )
+        embed = discord.Embed(title="🟢 | Online", description="Moon Tensura está online e pronto para o RPG", colour=0x1caa00, timestamp=agora)
         embed.set_footer(text="Tensura Moon - Korczak Technologies!")
         await canal.send(embed=embed)
     for guild in bot.guilds:
@@ -51,36 +39,14 @@ async def on_ready():
 
 
 async def carregar_extensoes():
-    await bot.load_extension("comandos.RPG.luta")
-    await bot.load_extension("comandos.RPG.treino")
-    await bot.load_extension("comandos.RPG.magias")
-    await bot.load_extension("comandos.RPG.habs")
-    await bot.load_extension("comandos.RPG.usarhab")
-    await bot.load_extension("comandos.RPG.status")
-    await bot.load_extension("comandos.RPG.nivel")
-    await bot.load_extension("comandos.RPG.nascimento")
-    await bot.load_extension("comandos.RPG.correcoes_luta")
-    await bot.load_extension("comandos.RPG.status_habilidades")
-
-    await bot.load_extension("comandos.ECONOMIA.cassino")
-    await bot.load_extension("comandos.ECONOMIA.loja")
-    await bot.load_extension("comandos.ECONOMIA.loja_canais")
-    await bot.load_extension("comandos.ECONOMIA.Hunos")
-    await bot.load_extension("comandos.ECONOMIA.Mora")
-    await bot.load_extension("comandos.ECONOMIA.recompensas")
-    await bot.load_extension("comandos.ECONOMIA.hunos_interacoes")
-    await bot.load_extension("comandos.ECONOMIA.GLOBAL.comandos")
-    await bot.load_extension("comandos.ECONOMIA.GLOBAL.banco_central")
-    await bot.load_extension("comandos.ECONOMIA.GLOBAL.credito_comandos")
-
-    await bot.load_extension("comandos.ADMINISTRACAO.autorole_commands")
-    await bot.load_extension("comandos.ADMINISTRACAO.autorole")
-    await bot.load_extension("comandos.ADMINISTRACAO.configurações")
-    await bot.load_extension("comandos.ADMINISTRACAO.moderacao")
-    await bot.load_extension("comandos.ADMINISTRACAO.automod")
-    await bot.load_extension("comandos.ADMINISTRACAO.boas_vindas")
-    await bot.load_extension("comandos.ADMINISTRACAO.logs")
-    await bot.load_extension("comandos.ADMINISTRACAO.ajuda")
+    extensoes = [
+        "comandos.RPG.luta", "comandos.RPG.treino", "comandos.RPG.magias", "comandos.RPG.habs", "comandos.RPG.usarhab", "comandos.RPG.status", "comandos.RPG.nivel", "comandos.RPG.nascimento", "comandos.RPG.correcoes_luta", "comandos.RPG.status_habilidades",
+        "comandos.ECONOMIA.cassino", "comandos.ECONOMIA.loja", "comandos.ECONOMIA.loja_canais", "comandos.ECONOMIA.Hunos", "comandos.ECONOMIA.Mora", "comandos.ECONOMIA.recompensas", "comandos.ECONOMIA.hunos_interacoes",
+        "comandos.ECONOMIA.GLOBAL.comandos", "comandos.ECONOMIA.GLOBAL.banco_central", "comandos.ECONOMIA.GLOBAL.credito_comandos", "comandos.ECONOMIA.GLOBAL.comercio_comandos",
+        "comandos.ADMINISTRACAO.autorole_commands", "comandos.ADMINISTRACAO.autorole", "comandos.ADMINISTRACAO.configurações", "comandos.ADMINISTRACAO.moderacao", "comandos.ADMINISTRACAO.automod", "comandos.ADMINISTRACAO.boas_vindas", "comandos.ADMINISTRACAO.logs", "comandos.ADMINISTRACAO.ajuda"
+    ]
+    for extensao in extensoes:
+        await bot.load_extension(extensao)
 
 
 TOKEN = os.getenv("DISCORD_TOKEN")
