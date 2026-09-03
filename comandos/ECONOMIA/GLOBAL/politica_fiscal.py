@@ -55,6 +55,6 @@ class MotorPoliticaFiscal:
                 emissao = self.emitir_divida(governo, deficit, prazo_ciclos=30)
                 if "erro" not in emissao: divida_total += deficit
             self.orcamentos.update_one({"_id": orc["_id"]}, {"$set": {"saldo_fiscal_bronze": saldo, "divida_total_bronze": divida_total, "juros_pagos_bronze": juros_pagos, "ultimo_ciclo": datetime.now(timezone.utc), "receita_bronze": 0.0, "gasto_bronze": 0.0}})
-            resultado.append({"governo": governo, "saldo_fiscal_bronze": saldo, "divida_total_bronze": divida_total, "deficit_bronze": deficit, "juros_pagos_bronze": juros_pagos})
+            resultado.append({"governo": governo, "receita_bronze": receita, "gasto_bronze": gasto, "saldo_fiscal_bronze": saldo, "divida_total_bronze": divida_total, "deficit_bronze": deficit, "juros_pagos_bronze": juros_pagos})
         if resultado: self.historico.insert_one({"data": datetime.now(timezone.utc), "resultados": resultado, "macro": macro})
         return resultado
