@@ -40,9 +40,12 @@ class OrquestradorEconomiaGlobal:
         from comandos.ECONOMIA.GLOBAL.autonomia.crises_dinamicas import MotorCrisesDinamicas
         resultado["crises_dinamicas"] = self._seguro("crises_dinamicas", lambda: MotorCrisesDinamicas(self.db, self.motor).executar_ciclo(), {"guilds_analisadas": 0, "crises_iniciadas": 0, "crises_encerradas": 0, "crises_ativas": 0})
 
-        # ETAPA 9 — comércio entre regiões, reinos e nações.
         from comandos.ECONOMIA.GLOBAL.autonomia.comercio_territorial import MotorComercioTerritorial
         resultado["comercio_territorial"] = self._seguro("comercio_territorial", lambda: MotorComercioTerritorial(self.db, self.motor).executar_ciclo(), {"rotas_processadas": 0, "comercio_internacional": 0, "comercio_inter_reino": 0, "tarifas_estimadas_bronze": 0, "tratados_aplicados": 0})
+
+        # ETAPA 10 — governo, impostos, tesouro e gastos públicos.
+        from comandos.ECONOMIA.GLOBAL.autonomia.governo_e_tesouro import MotorGovernoETesouro
+        resultado["governo_e_tesouro"] = self._seguro("governo_e_tesouro", lambda: MotorGovernoETesouro(self.db, self.motor).executar_ciclo(), {"governos_processados": 0, "receita_total_bronze": 0, "gasto_total_bronze": 0, "saldo_fiscal_bronze": 0})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
