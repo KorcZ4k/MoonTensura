@@ -86,6 +86,7 @@ async def carregar_extensoes():
     await bot.load_extension("comandos.ADMINISTRACAO.autorole_commands")
     await bot.load_extension("comandos.ADMINISTRACAO.autorole")
     await bot.load_extension("comandos.ADMINISTRACAO.configurações")
+    await bot.load_extension("comandos.ADMINISTRACAO.moderacao")
 
 
 TOKEN = os.getenv("DISCORD_TOKEN")
