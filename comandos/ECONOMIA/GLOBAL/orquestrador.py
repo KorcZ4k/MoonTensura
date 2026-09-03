@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 
 class OrquestradorEconomiaGlobal:
-    """Executa o ciclo-base e a etapa final de recuperação, auditoria e relatório."""
+    """Executa o ciclo-base e os módulos complementares da economia global."""
 
     def __init__(self, motor):
         self.motor = motor
@@ -23,6 +23,19 @@ class OrquestradorEconomiaGlobal:
 
     def executar_ciclo_completo(self):
         resultado = self._seguro("ciclo_base", self.motor.ciclo_economico, {})
+
+        # ETAPA 2 — empresas sem jogador passam a produzir automaticamente.
+        from comandos.ECONOMIA.GLOBAL.autonomia.producao_automatica import MotorProducaoAutonoma
+        resultado["producao_autonoma"] = self._seguro(
+            "producao_autonoma",
+            lambda: MotorProducaoAutonoma(self.db, self.motor).executar_ciclo(),
+            {
+                "empresas_processadas": 0,
+                "empresas_produzindo": 0,
+                "unidades_produzidas": 0,
+                "resultados": [],
+            },
+        )
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro(
