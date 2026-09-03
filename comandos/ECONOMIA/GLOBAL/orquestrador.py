@@ -13,12 +13,7 @@ class OrquestradorEconomiaGlobal:
         try:
             return funcao()
         except Exception as erro:
-            self.eventos.insert_one({
-                "tipo": "erro_orquestrador",
-                "modulo": nome,
-                "erro": str(erro),
-                "criado_em": datetime.now(timezone.utc),
-            })
+            self.eventos.insert_one({"tipo": "erro_orquestrador", "modulo": nome, "erro": str(erro), "criado_em": datetime.now(timezone.utc)})
             return {"erro": str(erro)} if padrao is None else padrao
 
     def executar_ciclo_completo(self):
@@ -36,9 +31,12 @@ class OrquestradorEconomiaGlobal:
         from comandos.ECONOMIA.GLOBAL.autonomia.populacao_npc import MotorPopulacaoNPC
         resultado["populacao_npc"] = self._seguro("populacao_npc", lambda: MotorPopulacaoNPC(self.db, self.motor).executar_ciclo(), {"populacoes_processadas": 0, "contratacoes": 0, "consumo_estimado_bronze": 0, "resultados": []})
 
-        # ETAPA 6 — concorrência, expansão, recuperação e falências.
         from comandos.ECONOMIA.GLOBAL.autonomia.ciclo_empresarial import MotorCicloEmpresarial
         resultado["ciclo_empresarial"] = self._seguro("ciclo_empresarial", lambda: MotorCicloEmpresarial(self.db, self.motor).executar_ciclo(), {"empresas_processadas": 0, "expansoes": 0, "recuperacoes": 0, "falencias": 0, "resultados": []})
+
+        # ETAPA 7 — crédito, juros, inadimplência e reinvestimentos.
+        from comandos.ECONOMIA.GLOBAL.autonomia.sistema_financeiro import MotorFinanceiroAutonomo
+        resultado["sistema_financeiro"] = self._seguro("sistema_financeiro", lambda: MotorFinanceiroAutonomo(self.db, self.motor).executar_ciclo(), {"creditos_processados": 0, "inadimplentes": 0, "quitados": 0, "investimentos": 0, "novos_creditos": 0})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
