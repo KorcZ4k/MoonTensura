@@ -10,6 +10,7 @@ from discord.ext import commands
 from database.python.mongodb import db
 from database.python.Hunos import init_db_hunos
 from comandos.ECONOMIA.GLOBAL.ciclo_automatico import configurar_ciclo_economico
+from comandos.ECONOMIA.GLOBAL.diagnostico import DiagnosticoEconomiaGlobal
 
 init_db_hunos(db)
 
@@ -37,6 +38,19 @@ async def on_ready():
         membros = [member for member in guild.members if not member.bot]
         quantidade = cadastro(membros)
         print(f"{guild.name}: {quantidade} usuários processados.")
+
+    if not getattr(bot, "diagnostico_economia_executado", False):
+        diagnostico = await asyncio.to_thread(DiagnosticoEconomiaGlobal(db).executar)
+        bot.diagnostico_economia_executado = True
+        print(
+            "Diagnóstico econômico: "
+            f"{diagnostico['ok']}/{diagnostico['total']} módulos válidos "
+            f"({diagnostico['saude_percentual']}%)."
+        )
+        if diagnostico["erros"]:
+            for item in diagnostico["itens"]:
+                if item["status"] == "erro":
+                    print(f"[ECONOMIA][ERRO] {item['nome']}: {item['erro']}")
 
     ciclo = configurar_ciclo_economico(bot, db, intervalo_segundos=60)
     if not getattr(ciclo, "_ativo", False):
