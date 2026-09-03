@@ -2102,8 +2102,6 @@ class Luta(commands.Cog):
         self,
         combate
     ):
-        print("\n========== RECOMPENSAS PvE ==========")
-        print("Participantes:", combate["participantes"])
         monstro = None
 
         for participante in combate["participantes"]:
@@ -2121,17 +2119,21 @@ class Luta(commands.Cog):
                 "hunos": 0
             }
 
-        monstro_id = monstro.get(
-            "monstro_id"
-        )
+        # O monstro criado pelo sistema usa a chave "id".
+        monstro_id = str(
+            monstro.get(
+                "monstro_id",
+                monstro.get("id", "")
+            )
+        ).lower().strip()
 
         dados = MONSTROS.get(
             monstro_id,
             {}
         )
 
-        # Caso o ID não esteja presente no participante,
-        # tenta localizar pelo nome.
+        # Caso o ID não seja encontrado,
+        # tenta localizar pelo nome do monstro.
         if not dados:
 
             nome_monstro = str(
@@ -2139,33 +2141,53 @@ class Luta(commands.Cog):
                     "nome",
                     ""
                 )
-            ).lower()
+            ).lower().strip()
 
-            for _, dados_monstro in MONSTROS.items():
+            for chave, dados_monstro in MONSTROS.items():
 
-                if str(
-                    dados_monstro.get(
-                        "nome",
-                        ""
-                    )
-                ).lower() == nome_monstro:
+                if (
+                    str(chave).lower()
+                    == nome_monstro
+                ):
 
                     dados = dados_monstro
 
                     break
 
+                if (
+                    str(
+                        dados_monstro.get(
+                            "nome",
+                            ""
+                        )
+                    ).lower()
+                    == nome_monstro
+                ):
+
+                    dados = dados_monstro
+
+                    break
+
+        # Prioriza os valores que já pertencem
+        # ao participante criado.
         xp = int(
-            dados.get(
+            monstro.get(
                 "xp_recompensa",
-                0
+                dados.get(
+                    "xp_recompensa",
+                    0
+                )
             )
             or 0
         )
 
         hunos = int(
-            dados.get(
+            monstro.get(
                 "hunos_recompensa",
-                0
+                dados.get(
+                    "hunos_recompensa",
+                    0
+                )
             )
             or 0
         )
@@ -2391,8 +2413,11 @@ class Luta(commands.Cog):
                 combate
             )
 
-            if resultado == "jogadores":
-
+            if (
+    isinstance(resultado, dict)
+    and resultado.get("tipo") == "vitoria"
+    and resultado.get("lado") == "jogadores"
+):
                 # ==================================================
                 # OBTER RECOMPENSAS DO MONSTRO
                 # ==================================================
@@ -2466,21 +2491,16 @@ class Luta(commands.Cog):
         # MOSTRAR RECOMPENSAS
         # ======================================================
 
-        if (
-            recompensas["xp"] > 0
-            or recompensas["hunos"] > 0
-        ):
-
-            embed.add_field(
-                name="🎁 Recompensas",
-                value=(
-                    f"✨ XP recebido: "
-                    f"**{recompensas['xp']}**\n"
-                    f"💰 Hunos recebidos: "
-                    f"**{recompensas['hunos']}**"
-                ),
-                inline=False
-            )
+        embed.add_field(
+            name="🎁 Recompensas",
+            value=(
+                f"✨ XP recebido: "
+                f"**{recompensas['xp']}**\n"
+                f"💰 Hunos recebidos: "
+                f"**{recompensas['hunos']}**"
+            ),
+            inline=False
+        )
 
         # ======================================================
         # STATUS FINAL
