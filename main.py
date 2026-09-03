@@ -77,6 +77,7 @@ async def carregar_extensoes():
 
     await bot.load_extension("comandos.ECONOMIA.cassino")
     await bot.load_extension("comandos.ECONOMIA.loja")
+    await bot.load_extension("comandos.ECONOMIA.loja_canais")
     await bot.load_extension("comandos.ECONOMIA.Hunos")
     await bot.load_extension("comandos.ECONOMIA.Mora")
     await bot.load_extension("comandos.ECONOMIA.recompensas")
