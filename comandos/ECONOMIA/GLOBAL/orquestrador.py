@@ -37,9 +37,12 @@ class OrquestradorEconomiaGlobal:
         from comandos.ECONOMIA.GLOBAL.autonomia.sistema_financeiro import MotorFinanceiroAutonomo
         resultado["sistema_financeiro"] = self._seguro("sistema_financeiro", lambda: MotorFinanceiroAutonomo(self.db, self.motor).executar_ciclo(), {"creditos_processados": 0, "inadimplentes": 0, "quitados": 0, "investimentos": 0, "novos_creditos": 0})
 
-        # ETAPA 8 — crises e recuperações econômicas dinâmicas.
         from comandos.ECONOMIA.GLOBAL.autonomia.crises_dinamicas import MotorCrisesDinamicas
         resultado["crises_dinamicas"] = self._seguro("crises_dinamicas", lambda: MotorCrisesDinamicas(self.db, self.motor).executar_ciclo(), {"guilds_analisadas": 0, "crises_iniciadas": 0, "crises_encerradas": 0, "crises_ativas": 0})
+
+        # ETAPA 9 — comércio entre regiões, reinos e nações.
+        from comandos.ECONOMIA.GLOBAL.autonomia.comercio_territorial import MotorComercioTerritorial
+        resultado["comercio_territorial"] = self._seguro("comercio_territorial", lambda: MotorComercioTerritorial(self.db, self.motor).executar_ciclo(), {"rotas_processadas": 0, "comercio_internacional": 0, "comercio_inter_reino": 0, "tarifas_estimadas_bronze": 0, "tratados_aplicados": 0})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
