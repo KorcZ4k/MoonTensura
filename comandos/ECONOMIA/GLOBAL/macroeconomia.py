@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 
 class MotorMacroeconomia:
-    """Conecta população, trabalho, empresas, produção e mercados ao ciclo macroeconômico."""
+    """Conecta população, trabalho, empresas, produção, mercados e política fiscal."""
 
     def __init__(self, db, motor):
         self.db = db
@@ -18,12 +18,14 @@ class MotorMacroeconomia:
         empresas = list(self.empresas.find({"status": {"$in": ["ativa", "insolvente"]}}))
         mercados = list(self.motor.mercados.find())
         empregos = list(self.empregos.find())
+        estado = self.motor.relatorio_global()
+        indice_precos = max(1.0, float(estado.get("indice_precos", 100.0)))
 
         populacao_total = sum(int(p.get("quantidade", 0)) for p in populacoes)
         empregados = sum(int(p.get("empregados", 0)) for p in populacoes)
         desempregados = sum(int(p.get("desempregados", 0)) for p in populacoes)
         renda_nominal = sum(float(p.get("renda_mensal_total_bronze", 0)) * (int(p.get("empregados", 0)) / max(1, int(p.get("quantidade", 1)))) for p in populacoes)
-        renda_real = sum(float(self.motor.relatorio_global().get("indice_precos", 100.0)) > 0 and float(p.get("renda_mensal_total_bronze", 0)) * (int(p.get("empregados", 0)) / max(1, int(p.get("quantidade", 1)))) / (float(self.motor.relatorio_global().get("indice_precos", 100.0)) / 100.0) for p in populacoes)
+        renda_real = renda_nominal / (indice_precos / 100.0)
 
         massa_salarial = sum(float(e.get("salario_bronze", e.get("salario", 0))) * int(e.get("contratados", e.get("ocupadas", 0))) for e in empregos)
         receita_empresas = sum(float(e.get("receita_bronze", 0)) for e in empresas)
@@ -62,25 +64,48 @@ class MotorMacroeconomia:
 
     def aplicar(self):
         macro = self.calcular()
-        hiato = float(macro["hiato_oferta_demanda"])
+
+        fiscal = {}
+        try:
+            from comandos.ECONOMIA.GLOBAL.integracao_fiscal import IntegradorFiscalMacroeconomico
+            fiscal = IntegradorFiscalMacroeconomico(self.db, self.motor).aplicar(macro)
+        except Exception as erro:
+            self.motor.eventos.insert_one({"tipo": "erro_integracao_fiscal", "erro": str(erro), "criado_em": datetime.now(timezone.utc)})
+
+        gasto_publico = float(fiscal.get("gasto_publico_bronze", 0.0))
+        demanda_total = float(fiscal.get("demanda_total_bronze", macro["demanda_agregada_bronze"]))
+        oferta = float(macro["oferta_agregada"])
+        hiato = (demanda_total - oferta) / max(demanda_total, oferta, 1.0)
         desemprego = float(macro["taxa_desemprego"])
-        pressao = hiato * 0.35 - desemprego * 0.05
+        pressao_fiscal = float(fiscal.get("pressao_fiscal", 0.0))
+        pressao = hiato * 0.35 - desemprego * 0.05 + pressao_fiscal * 0.15
         pressao = max(-0.008, min(0.008, pressao))
+
         atual = self.motor.relatorio_global()
         indice = max(1.0, float(atual.get("indice_precos", 100.0)) * (1.0 + pressao))
         politica = "pressao_inflacionaria" if pressao > 0.0005 else "pressao_deflacionaria" if pressao < -0.0005 else "estavel"
+
         self.motor.economia.update_one({"_id": "global"}, {"$set": {
             "indice_precos": indice,
             "pressao_macro": pressao,
-            "demanda_agregada": macro["demanda_agregada_bronze"],
-            "oferta_agregada": macro["oferta_agregada"],
+            "demanda_agregada": demanda_total,
+            "demanda_privada_bronze": macro["demanda_agregada_bronze"],
+            "gasto_publico_bronze": gasto_publico,
+            "oferta_agregada": oferta,
             "taxa_desemprego_global": desemprego,
             "massa_salarial_bronze": macro["massa_salarial_bronze"],
             "renda_real_global_bronze": macro["renda_real_bronze"],
             "politica_ciclo": politica,
             "ultimo_ciclo_macro": datetime.now(timezone.utc)
         }}, upsert=True)
-        macro["indice_precos"] = indice
-        macro["pressao_macro"] = pressao
-        macro["situacao"] = politica
+
+        macro.update({
+            "indice_precos": indice,
+            "pressao_macro": pressao,
+            "situacao": politica,
+            "demanda_agregada_bronze": demanda_total,
+            "demanda_privada_bronze": macro["demanda_agregada_bronze"],
+            "gasto_publico_bronze": gasto_publico,
+            "fiscal": fiscal,
+        })
         return macro
