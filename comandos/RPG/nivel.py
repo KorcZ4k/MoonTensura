@@ -134,17 +134,29 @@ class Nivel(commands.Cog):
             int(user_id)
         )
 
+        jogador = membro.mention if membro is not None else f"<@{user_id}>"
+
+        embed = discord.Embed(
+            title="🎉 | Subiu de nível!",
+            description=(
+                f"{jogador} subiu de nível.\n\n"
+                f"**{nivel_anterior} → {nivel_novo}**"
+            ),
+            color=discord.Color.gold(),
+            timestamp=discord.utils.utcnow()
+        )
+
+        embed.set_footer(
+            text="Tensura Moon - Korczak Technologies!"
+        )
+
         if membro is not None:
-
-            jogador = membro.mention
-
-        else:
-
-            jogador = f"<@{user_id}>"
+            embed.set_thumbnail(
+                url=membro.display_avatar.url
+            )
 
         await canal.send(
-            f"🎉 {jogador} subiu de nível!\n"
-            f"**{nivel_anterior} → {nivel_novo}**"
+            embed=embed
         )
 
     @verificar_niveis.before_loop
