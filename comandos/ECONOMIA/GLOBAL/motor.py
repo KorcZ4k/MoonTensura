@@ -21,7 +21,7 @@ class MotorEconomiaGlobal:
             "_id": "global", "indice_precos": 100.0, "inflacao_minuto": 0.0,
             "liquidez_ouro": 100000.0, "fluxo_capital": 0.0,
             "balanca_comercial": {}, "taxa_juros": 0.05,
-            "politica_monetaria": "estavel", "ultimo_tick": datetime.now(timezone.utc), "versao": 2
+            "politica_monetaria": "estavel", "ultimo_tick": datetime.now(timezone.utc), "versao": 3
         }}, upsert=True)
 
     @staticmethod
@@ -49,7 +49,8 @@ class MotorEconomiaGlobal:
         self.mercados.update_one({"guild_id": str(guild_id), "channel_id": str(channel_id)}, {"$set": {
             "guild_id": str(guild_id), "channel_id": str(channel_id), "tipo": tipo, "categoria": categoria,
             "demanda": 0.0, "oferta": 0.0, "volume_minuto": 0.0, "multiplicador_preco": 1.0,
-            "estoque": {}, "receita_bronze": 0.0, "vendas_total": 0, "criado_em": datetime.now(timezone.utc)
+            "estoque": {}, "receita_bronze": 0.0, "vendas_total": 0,
+            "custos_operacionais_bronze": 0.0, "criado_em": datetime.now(timezone.utc)
         }}, upsert=True)
 
     def mercado_do_canal(self, guild_id, channel_id):
@@ -95,6 +96,17 @@ class MotorEconomiaGlobal:
         for mercado in mercados:
             self.mercados.update_one({"_id": mercado["_id"]}, {"$set": {"demanda": 0.0, "oferta": 0.0, "volume_minuto": 0.0}})
         return novo
+
+    def ciclo_economico(self):
+        estado = self.tick()
+        try:
+            from comandos.ECONOMIA.GLOBAL.producao import MotorProducao
+            producao = MotorProducao(self.db, self)
+            reposicoes = producao.ciclo_reposicao()
+        except Exception as erro:
+            reposicoes = []
+            self.eventos.insert_one({"tipo": "erro_reposicao", "erro": str(erro), "criado_em": datetime.now(timezone.utc)})
+        return {"estado": estado, "reposicoes": len(reposicoes)}
 
     def relatorio_global(self):
         return self.economia.find_one({"_id": "global"}) or {}
