@@ -17,7 +17,7 @@ class MotorEconomiaGlobal:
         self._inicializar()
 
     def _inicializar(self):
-        self.economia.update_one({"_id": "global"}, {"$setOnInsert": {"_id": "global", "indice_precos": 100.0, "inflacao_minuto": 0.0, "liquidez_ouro": 100000.0, "fluxo_capital": 0.0, "balanca_comercial": {}, "taxa_juros": 0.05, "politica_monetaria": "estavel", "reservas_monetarias_bronze": 0.0, "credito_disponivel_bronze": 0.0, "ultimo_tick": datetime.now(timezone.utc), "versao": 10}}, upsert=True)
+        self.economia.update_one({"_id": "global"}, {"$setOnInsert": {"_id": "global", "indice_precos": 100.0, "inflacao_minuto": 0.0, "liquidez_ouro": 100000.0, "fluxo_capital": 0.0, "balanca_comercial": {}, "taxa_juros": 0.05, "politica_monetaria": "estavel", "reservas_monetarias_bronze": 0.0, "credito_disponivel_bronze": 0.0, "ultimo_tick": datetime.now(timezone.utc), "versao": 11}}, upsert=True)
 
     @staticmethod
     def converter_bronze(valor_bronze):
@@ -89,7 +89,7 @@ class MotorEconomiaGlobal:
         return novo
 
     def ciclo_economico(self):
-        estado = self.tick(); reposicoes = empresas = inadimplentes = populacoes = eventos_processados = 0; financeiro = {}; credito = {}
+        estado = self.tick(); reposicoes = empresas = inadimplentes = populacoes = eventos_processados = 0; financeiro = {}; credito = {}; macro = {}
         try:
             from comandos.ECONOMIA.GLOBAL.eventos import MotorEventosEconomicos
             eventos_processados = MotorEventosEconomicos(self.db, self).processar_eventos().get("processados", 0)
@@ -119,6 +119,10 @@ class MotorEconomiaGlobal:
             motor_pop = MotorPopulacao(self.db, self)
             for pop in motor_pop.populacoes.find(): motor_pop.ciclo_consumo(pop["governo_id"]); populacoes += 1
         except Exception as erro: self.eventos.insert_one({"tipo": "erro_populacao", "erro": str(erro), "criado_em": datetime.now(timezone.utc)})
-        return {"estado": estado, "reposicoes": reposicoes, "empresas": empresas, "inadimplentes": inadimplentes, "populacoes": populacoes, "eventos": eventos_processados, "financeiro": financeiro, "credito": credito}
+        try:
+            from comandos.ECONOMIA.GLOBAL.macroeconomia import MotorMacroeconomia
+            macro = MotorMacroeconomia(self.db, self).aplicar()
+        except Exception as erro: self.eventos.insert_one({"tipo": "erro_macroeconomia", "erro": str(erro), "criado_em": datetime.now(timezone.utc)})
+        return {"estado": estado, "reposicoes": reposicoes, "empresas": empresas, "inadimplentes": inadimplentes, "populacoes": populacoes, "eventos": eventos_processados, "financeiro": financeiro, "credito": credito, "macro": macro}
 
     def relatorio_global(self): return self.economia.find_one({"_id": "global"}) or {}
