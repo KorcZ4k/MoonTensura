@@ -49,10 +49,12 @@ class OrquestradorEconomiaGlobal:
         resultado["circulacao_monetaria"] = self._seguro("circulacao_monetaria", lambda: MotorCirculacaoMonetaria(self.db, self.motor).executar_ciclo(), {})
         from comandos.ECONOMIA.GLOBAL.autonomia.empresas_npc_avancadas import MotorEmpresasNPCAvancadas
         resultado["empresas_npc_avancadas"] = self._seguro("empresas_npc_avancadas", lambda: MotorEmpresasNPCAvancadas(self.db, self.motor).executar_ciclo(), {})
-
-        # ETAPA 17 — acontecimentos econômicos mundiais dinâmicos.
         from comandos.ECONOMIA.GLOBAL.autonomia.eventos_economicos_mundiais import MotorEventosEconomicosMundiais
         resultado["eventos_economicos_mundiais"] = self._seguro("eventos_economicos_mundiais", lambda: MotorEventosEconomicosMundiais(self.db, self.motor).executar_ciclo(), {"evento_gerado": False})
+
+        # ETAPA 18 — auditoria e estabilização automática da economia global.
+        from comandos.ECONOMIA.GLOBAL.autonomia.estabilizacao_global import MotorEstabilizacaoGlobal
+        resultado["estabilizacao_global"] = self._seguro("estabilizacao_global", lambda: MotorEstabilizacaoGlobal(self.db, self.motor).executar_ciclo(), {"economia_estavel": False, "correcoes_aplicadas": 0})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
