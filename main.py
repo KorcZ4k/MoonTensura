@@ -73,12 +73,14 @@ async def carregar_extensoes():
     await bot.load_extension("comandos.RPG.nivel")
     await bot.load_extension("comandos.RPG.nascimento")
     await bot.load_extension("comandos.RPG.correcoes_luta")
+    await bot.load_extension("comandos.RPG.status_habilidades")
 
     await bot.load_extension("comandos.ECONOMIA.cassino")
     await bot.load_extension("comandos.ECONOMIA.loja")
     await bot.load_extension("comandos.ECONOMIA.Hunos")
     await bot.load_extension("comandos.ECONOMIA.Mora")
     await bot.load_extension("comandos.ECONOMIA.recompensas")
+    await bot.load_extension("comandos.ECONOMIA.hunos_interacoes")
 
     await bot.load_extension("comandos.ADMINISTRACAO.autorole_commands")
     await bot.load_extension("comandos.ADMINISTRACAO.autorole")
