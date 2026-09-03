@@ -92,6 +92,7 @@ async def carregar_extensoes():
     await bot.load_extension("comandos.RPG.usarhab")
     await bot.load_extension("comandos.ADMINISTRACAO.autorole")
     await bot.load_extension("comandos.RPG.status")
+    await bot.load_extension("comandos.RPG.nivel")
     await bot.load_extension("comandos.ECONOMIA.Hunos")
     await bot.load_extension("comandos.ECONOMIA.Mora")
     await bot.load_extension("comandos.ADMINISTRACAO.configurações")
