@@ -38,12 +38,19 @@ class OrquestradorEconomiaGlobal:
             {"mercados_processados": 0, "precos_aumentados": 0, "precos_reduzidos": 0, "precos_estaveis": 0},
         )
 
-        # ETAPA 4 — identifica arbitragem e cria rotas comerciais automáticas.
         from comandos.ECONOMIA.GLOBAL.autonomia.rotas_automaticas import MotorRotasAutomaticas
         resultado["rotas_automaticas"] = self._seguro(
             "rotas_automaticas",
             lambda: MotorRotasAutomaticas(self.db, self.motor).executar_ciclo(),
             {"mercados_processados": 0, "oportunidades_identificadas": 0, "rotas_criadas": 0},
+        )
+
+        # ETAPA 5 — população NPC, emprego, renda e consumo.
+        from comandos.ECONOMIA.GLOBAL.autonomia.populacao_npc import MotorPopulacaoNPC
+        resultado["populacao_npc"] = self._seguro(
+            "populacao_npc",
+            lambda: MotorPopulacaoNPC(self.db, self.motor).executar_ciclo(),
+            {"populacoes_processadas": 0, "contratacoes": 0, "consumo_estimado_bronze": 0, "resultados": []},
         )
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
