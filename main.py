@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from database.python.mongodb import db
 from database.python.Hunos import init_db_hunos
+from comandos.ECONOMIA.auditoria import AuditoriaEconomia
 from comandos.ECONOMIA.GLOBAL.ciclo_automatico import configurar_ciclo_economico
 from comandos.ECONOMIA.GLOBAL.diagnostico import DiagnosticoEconomiaGlobal
 
@@ -42,11 +43,7 @@ async def on_ready():
     if not getattr(bot, "diagnostico_economia_executado", False):
         diagnostico = await asyncio.to_thread(DiagnosticoEconomiaGlobal(db).executar)
         bot.diagnostico_economia_executado = True
-        print(
-            "Diagnóstico econômico: "
-            f"{diagnostico['ok']}/{diagnostico['total']} módulos válidos "
-            f"({diagnostico['saude_percentual']}%)."
-        )
+        print(f"Diagnóstico econômico: {diagnostico['ok']}/{diagnostico['total']} módulos válidos ({diagnostico['saude_percentual']}%).")
         if diagnostico["erros"]:
             for item in diagnostico["itens"]:
                 if item["status"] == "erro":
@@ -65,6 +62,19 @@ async def carregar_extensoes():
         "comandos.ECONOMIA.GLOBAL.comandos", "comandos.ECONOMIA.GLOBAL.banco_central", "comandos.ECONOMIA.GLOBAL.credito_comandos", "comandos.ECONOMIA.GLOBAL.comercio_comandos", "comandos.ECONOMIA.GLOBAL.trabalho_comandos",
         "comandos.ADMINISTRACAO.autorole_commands", "comandos.ADMINISTRACAO.autorole", "comandos.ADMINISTRACAO.configurações", "comandos.ADMINISTRACAO.moderacao", "comandos.ADMINISTRACAO.automod", "comandos.ADMINISTRACAO.boas_vindas", "comandos.ADMINISTRACAO.logs", "comandos.ADMINISTRACAO.ajuda"
     ]
+
+    auditoria = await asyncio.to_thread(AuditoriaEconomia(db).executar)
+    print(f"Auditoria ECONOMIA: {AuditoriaEconomia.resumo(auditoria)}")
+    if auditoria["arquivos_com_erro"]:
+        for item in auditoria["detalhes"]:
+            if item["status"] == "erro":
+                print(f"[AUDITORIA][ERRO] {item['arquivo']}: {' | '.join(item['erros'])}")
+    if auditoria["conflitos_comandos"]:
+        print("[AUDITORIA] Conflitos de comandos detectados:")
+        for conflito in auditoria["conflitos_comandos"]:
+            print(f"  - {conflito['nome']}: {', '.join(conflito['arquivos'])}")
+        raise RuntimeError("A auditoria da ECONOMIA encontrou comandos duplicados. Corrija os conflitos antes de iniciar o bot.")
+
     for extensao in extensoes:
         await bot.load_extension(extensao)
 
