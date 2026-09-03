@@ -21,7 +21,7 @@ class MotorEconomiaGlobal:
             "_id": "global", "indice_precos": 100.0, "inflacao_minuto": 0.0,
             "liquidez_ouro": 100000.0, "fluxo_capital": 0.0,
             "balanca_comercial": {}, "taxa_juros": 0.05,
-            "politica_monetaria": "estavel", "ultimo_tick": datetime.now(timezone.utc), "versao": 3
+            "politica_monetaria": "estavel", "ultimo_tick": datetime.now(timezone.utc), "versao": 4
         }}, upsert=True)
 
     @staticmethod
@@ -59,10 +59,17 @@ class MotorEconomiaGlobal:
     def registrar_transacao(self, guild_id, channel_id, valor_bronze, quantidade=1, lado="compra"):
         mercado = self.mercado_do_canal(guild_id, channel_id)
         if not mercado: return None
-        q = max(1, int(quantidade)); demanda = q if lado == "compra" else 0; oferta = q if lado == "venda" else 0
-        novo = self.mercados.find_one_and_update({"_id": mercado["_id"]}, {"$inc": {
-            "demanda": demanda, "oferta": oferta, "volume_minuto": abs(float(valor_bronze))},
-            "$set": {"ultima_transacao": datetime.now(timezone.utc)}}, return_document=ReturnDocument.AFTER)
+        q = max(1, int(quantidade))
+        demanda = q if lado == "compra" else 0
+        oferta = q if lado == "venda" else 0
+        receita = abs(float(valor_bronze)) if lado == "compra" else 0
+        novo = self.mercados.find_one_and_update(
+            {"_id": mercado["_id"]},
+            {"$inc": {"demanda": demanda, "oferta": oferta, "volume_minuto": abs(float(valor_bronze)),
+                      "receita_bronze": receita, "vendas_total": q if lado == "compra" else 0},
+             "$set": {"ultima_transacao": datetime.now(timezone.utc)}},
+            return_document=ReturnDocument.AFTER
+        )
         self.economia.update_one({"_id": "global"}, {"$inc": {"fluxo_capital": abs(float(valor_bronze))}}, upsert=True)
         return novo
 
@@ -99,14 +106,20 @@ class MotorEconomiaGlobal:
 
     def ciclo_economico(self):
         estado = self.tick()
+        reposicoes = 0
+        empresas = 0
         try:
             from comandos.ECONOMIA.GLOBAL.producao import MotorProducao
             producao = MotorProducao(self.db, self)
-            reposicoes = producao.ciclo_reposicao()
+            reposicoes = len(producao.ciclo_reposicao())
         except Exception as erro:
-            reposicoes = []
             self.eventos.insert_one({"tipo": "erro_reposicao", "erro": str(erro), "criado_em": datetime.now(timezone.utc)})
-        return {"estado": estado, "reposicoes": len(reposicoes)}
+        try:
+            from comandos.ECONOMIA.GLOBAL.empresas import MotorEmpresas
+            empresas = MotorEmpresas(self.db, self).sincronizar_mercados()
+        except Exception as erro:
+            self.eventos.insert_one({"tipo": "erro_empresas", "erro": str(erro), "criado_em": datetime.now(timezone.utc)})
+        return {"estado": estado, "reposicoes": reposicoes, "empresas": empresas}
 
     def relatorio_global(self):
         return self.economia.find_one({"_id": "global"}) or {}
