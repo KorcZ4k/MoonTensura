@@ -21,7 +21,9 @@ class MotorEconomiaGlobal:
             "_id": "global", "indice_precos": 100.0, "inflacao_minuto": 0.0,
             "liquidez_ouro": 100000.0, "fluxo_capital": 0.0,
             "balanca_comercial": {}, "taxa_juros": 0.05,
-            "politica_monetaria": "estavel", "ultimo_tick": datetime.now(timezone.utc), "versao": 7
+            "politica_monetaria": "estavel", "reservas_monetarias_bronze": 0.0,
+            "credito_disponivel_bronze": 0.0,
+            "ultimo_tick": datetime.now(timezone.utc), "versao": 8
         }}, upsert=True)
 
     @staticmethod
@@ -42,21 +44,75 @@ class MotorEconomiaGlobal:
         if c["bronze"] or not partes: partes.append(f"{c['bronze']} Bronze")
         return " | ".join(partes)
 
+    @staticmethod
+    def _normalizar_tipo(tipo, categoria="comum"):
+        tipo = str(tipo).lower().strip()
+        categoria = str(categoria).lower().strip()
+        if tipo not in {"taverna", "loja", "bazar"}:
+            raise ValueError("Tipo inválido. Use: taverna, loja ou bazar.")
+        if tipo == "taverna":
+            if categoria not in {"comum", "imperial"}:
+                raise ValueError("Taverna deve ser comum ou imperial.")
+        elif categoria in {"", "comum"}:
+            categoria = "geral"
+        return tipo, categoria
+
     def configurar_mercado(self, guild_id, channel_id, tipo, categoria="comum"):
-        tipo, categoria = tipo.lower(), categoria.lower()
-        if tipo not in {"taverna", "loja", "bazar"}: raise ValueError("Tipo inválido")
-        if tipo == "taverna" and categoria not in {"comum", "imperial"}: raise ValueError("Categoria inválida")
-        self.mercados.update_one({"guild_id": str(guild_id), "channel_id": str(channel_id)}, {"$set": {
-            "guild_id": str(guild_id), "channel_id": str(channel_id), "tipo": tipo, "categoria": categoria,
-            "demanda": 0.0, "oferta": 0.0, "volume_minuto": 0.0, "multiplicador_preco": 1.0,
-            "estoque": {}, "receita_bronze": 0.0, "vendas_total": 0,
-            "custos_operacionais_bronze": 0.0, "criado_em": datetime.now(timezone.utc)
-        }}, upsert=True)
+        """Adiciona um tipo de mercado ao canal sem apagar os tipos existentes."""
+        tipo, categoria = self._normalizar_tipo(tipo, categoria)
+        chave = {"guild_id": str(guild_id), "channel_id": str(channel_id)}
+        agora = datetime.now(timezone.utc)
+        existente = self.mercados.find_one(chave)
+
+        configuracao = {"tipo": tipo, "categoria": categoria}
+        if existente:
+            tipos = list(existente.get("tipos_mercado", []))
+            if configuracao not in tipos:
+                tipos.append(configuracao)
+            self.mercados.update_one(chave, {"$set": {
+                "tipos_mercado": tipos,
+                "ultimo_tipo_adicionado": configuracao,
+                "atualizado_em": agora,
+            }})
+        else:
+            self.mercados.insert_one({
+                "guild_id": str(guild_id), "channel_id": str(channel_id),
+                "tipos_mercado": [configuracao],
+                # Campos legados mantidos para não quebrar produção, estoque e preços.
+                "tipo": tipo, "categoria": categoria,
+                "demanda": 0.0, "oferta": 0.0, "volume_minuto": 0.0,
+                "multiplicador_preco": 1.0, "estoque": {},
+                "receita_bronze": 0.0, "vendas_total": 0,
+                "custos_operacionais_bronze": 0.0,
+                "criado_em": agora, "atualizado_em": agora,
+            })
+
+        return self.mercado_do_canal(guild_id, channel_id)
+
+    def tipos_do_mercado(self, guild_id, channel_id):
+        mercado = self.mercado_do_canal(guild_id, channel_id)
+        if not mercado:
+            return []
+        tipos = mercado.get("tipos_mercado")
+        if tipos:
+            return tipos
+        # Compatibilidade com mercados antigos.
+        return [{"tipo": mercado.get("tipo", "loja"), "categoria": mercado.get("categoria", "geral")}]
+
+    def canal_tem_tipo_mercado(self, guild_id, channel_id, tipo, categoria=None):
+        tipo = str(tipo).lower().strip()
+        categoria = str(categoria).lower().strip() if categoria is not None else None
+        for configuracao in self.tipos_do_mercado(guild_id, channel_id):
+            if configuracao.get("tipo") != tipo:
+                continue
+            if categoria is None or configuracao.get("categoria") == categoria:
+                return True
+        return False
 
     def mercado_do_canal(self, guild_id, channel_id):
         return self.mercados.find_one({"guild_id": str(guild_id), "channel_id": str(channel_id)})
 
-    def registrar_transacao(self, guild_id, channel_id, valor_bronze, quantidade=1, lado="compra"):
+    def registrar_transacao(self, guild_id, channel_id, valor_bronze, quantidade=1, lado="compra", tipo_mercado=None):
         mercado = self.mercado_do_canal(guild_id, channel_id)
         if not mercado: return None
         q = max(1, int(quantidade)); demanda = q if lado == "compra" else 0; oferta = q if lado == "venda" else 0
@@ -81,6 +137,29 @@ class MotorEconomiaGlobal:
         multiplicador = local * inflacao * escassez
         self.mercados.update_one({"_id": mercado["_id"]}, {"$set": {"multiplicador_preco": multiplicador}})
         return max(1, int(round(float(preco_base_bronze) * multiplicador)))
+
+    def definir_taxa_juros(self, percentual):
+        taxa = max(0.0, min(1.0, float(percentual)))
+        return self.economia.find_one_and_update({"_id": "global"}, {"$set": {
+            "taxa_juros": taxa,
+            "ultima_politica_monetaria": datetime.now(timezone.utc),
+        }}, return_document=ReturnDocument.AFTER)
+
+    def ajustar_liquidez(self, valor_bronze, operacao="injecao"):
+        valor = max(0.0, float(valor_bronze))
+        estado = self.relatorio_global()
+        atual = float(estado.get("reservas_monetarias_bronze", 0.0))
+        if operacao == "retirada":
+            valor = -min(valor, max(0.0, atual))
+        elif operacao != "injecao":
+            raise ValueError("Operação inválida. Use injecao ou retirada.")
+        return self.economia.find_one_and_update({"_id": "global"}, {"$inc": {
+            "reservas_monetarias_bronze": valor,
+            "credito_disponivel_bronze": valor,
+        }, "$set": {
+            "politica_monetaria": "expansionista" if valor > 0 else "contracionista",
+            "ultima_politica_monetaria": datetime.now(timezone.utc),
+        }}, return_document=ReturnDocument.AFTER)
 
     def tick(self):
         mercados = list(self.mercados.find())
