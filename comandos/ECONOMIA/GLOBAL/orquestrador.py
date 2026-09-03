@@ -38,19 +38,21 @@ class OrquestradorEconomiaGlobal:
         from comandos.ECONOMIA.GLOBAL.autonomia.governo_e_tesouro import MotorGovernoETesouro
         resultado["governo_e_tesouro"] = self._seguro("governo_e_tesouro", lambda: MotorGovernoETesouro(self.db, self.motor).executar_ciclo(), {})
         from comandos.ECONOMIA.GLOBAL.autonomia.recursos_naturais import MotorRecursosNaturais
-        resultado["recursos_naturais"] = self._seguro("recursos_naturais", lambda: MotorRecursosNaturais(self.db, self.motor).executar_ciclo(), {"recursos_processados": 0, "unidades_extraidas": 0, "recursos_esgotados": 0, "recursos_em_escassez": 0})
+        resultado["recursos_naturais"] = self._seguro("recursos_naturais", lambda: MotorRecursosNaturais(self.db, self.motor).executar_ciclo(), {})
         from comandos.ECONOMIA.GLOBAL.autonomia.guerra_e_economia import MotorGuerraEEconomia
-        resultado["guerra_e_economia"] = self._seguro("guerra_e_economia", lambda: MotorGuerraEEconomia(self.db, self.motor).executar_ciclo(), {"conflitos_processados": 0, "empresas_afetadas": 0, "rotas_interrompidas": 0, "recursos_perdidos": 0})
+        resultado["guerra_e_economia"] = self._seguro("guerra_e_economia", lambda: MotorGuerraEEconomia(self.db, self.motor).executar_ciclo(), {})
         from comandos.ECONOMIA.GLOBAL.autonomia.diplomacia_economica import MotorDiplomaciaEconomica
-        resultado["diplomacia_economica"] = self._seguro("diplomacia_economica", lambda: MotorDiplomaciaEconomica(self.db, self.motor).executar_ciclo(), {"sancoes_processadas": 0, "rotas_bloqueadas": 0, "tratados_processados": 0, "rotas_beneficiadas": 0})
+        resultado["diplomacia_economica"] = self._seguro("diplomacia_economica", lambda: MotorDiplomaciaEconomica(self.db, self.motor).executar_ciclo(), {})
         from comandos.ECONOMIA.GLOBAL.autonomia.evolucao_territorial import MotorEvolucaoTerritorial
-        resultado["evolucao_territorial"] = self._seguro("evolucao_territorial", lambda: MotorEvolucaoTerritorial(self.db, self.motor).executar_ciclo(), {"territorios_processados": 0, "territorios_em_crescimento": 0, "territorios_em_declinio": 0, "prosperidade_media": 0})
+        resultado["evolucao_territorial"] = self._seguro("evolucao_territorial", lambda: MotorEvolucaoTerritorial(self.db, self.motor).executar_ciclo(), {})
         from comandos.ECONOMIA.GLOBAL.autonomia.circulacao_monetaria import MotorCirculacaoMonetaria
-        resultado["circulacao_monetaria"] = self._seguro("circulacao_monetaria", lambda: MotorCirculacaoMonetaria(self.db, self.motor).executar_ciclo(), {"empresas_normalizadas": 0, "capital_em_bronze": 0, "governos_normalizados": 0, "tesouro_em_bronze": 0})
-
-        # ETAPA 16 — empresas NPC tomam decisões econômicas próprias.
+        resultado["circulacao_monetaria"] = self._seguro("circulacao_monetaria", lambda: MotorCirculacaoMonetaria(self.db, self.motor).executar_ciclo(), {})
         from comandos.ECONOMIA.GLOBAL.autonomia.empresas_npc_avancadas import MotorEmpresasNPCAvancadas
-        resultado["empresas_npc_avancadas"] = self._seguro("empresas_npc_avancadas", lambda: MotorEmpresasNPCAvancadas(self.db, self.motor).executar_ciclo(), {"empresas_processadas": 0, "empresas_expandidas": 0, "empresas_reduzidas": 0, "empresas_em_competicao": 0, "empresas_falidas": 0, "empresas_de_jogadores_ignoradas": 0})
+        resultado["empresas_npc_avancadas"] = self._seguro("empresas_npc_avancadas", lambda: MotorEmpresasNPCAvancadas(self.db, self.motor).executar_ciclo(), {})
+
+        # ETAPA 17 — acontecimentos econômicos mundiais dinâmicos.
+        from comandos.ECONOMIA.GLOBAL.autonomia.eventos_economicos_mundiais import MotorEventosEconomicosMundiais
+        resultado["eventos_economicos_mundiais"] = self._seguro("eventos_economicos_mundiais", lambda: MotorEventosEconomicosMundiais(self.db, self.motor).executar_ciclo(), {"evento_gerado": False})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
