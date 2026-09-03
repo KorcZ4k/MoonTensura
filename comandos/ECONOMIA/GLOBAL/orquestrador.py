@@ -43,10 +43,12 @@ class OrquestradorEconomiaGlobal:
         resultado["guerra_e_economia"] = self._seguro("guerra_e_economia", lambda: MotorGuerraEEconomia(self.db, self.motor).executar_ciclo(), {"conflitos_processados": 0, "empresas_afetadas": 0, "rotas_interrompidas": 0, "recursos_perdidos": 0})
         from comandos.ECONOMIA.GLOBAL.autonomia.diplomacia_economica import MotorDiplomaciaEconomica
         resultado["diplomacia_economica"] = self._seguro("diplomacia_economica", lambda: MotorDiplomaciaEconomica(self.db, self.motor).executar_ciclo(), {"sancoes_processadas": 0, "rotas_bloqueadas": 0, "tratados_processados": 0, "rotas_beneficiadas": 0})
-
-        # ETAPA 14 — crescimento, prosperidade e decadência dos territórios.
         from comandos.ECONOMIA.GLOBAL.autonomia.evolucao_territorial import MotorEvolucaoTerritorial
         resultado["evolucao_territorial"] = self._seguro("evolucao_territorial", lambda: MotorEvolucaoTerritorial(self.db, self.motor).executar_ciclo(), {"territorios_processados": 0, "territorios_em_crescimento": 0, "territorios_em_declinio": 0, "prosperidade_media": 0})
+
+        # ETAPA 15 — moeda Hunos e circulação econômica padronizada.
+        from comandos.ECONOMIA.GLOBAL.autonomia.circulacao_monetaria import MotorCirculacaoMonetaria
+        resultado["circulacao_monetaria"] = self._seguro("circulacao_monetaria", lambda: MotorCirculacaoMonetaria(self.db, self.motor).executar_ciclo(), {"empresas_normalizadas": 0, "capital_em_bronze": 0, "governos_normalizados": 0, "tesouro_em_bronze": 0})
 
         from comandos.ECONOMIA.GLOBAL.recuperacao import MotorRecuperacaoEconomica
         resultado["recuperacao"] = self._seguro("recuperacao", lambda: MotorRecuperacaoEconomica(self.db, self.motor).processar_ciclo(), {})
