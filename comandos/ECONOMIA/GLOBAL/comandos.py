@@ -4,6 +4,7 @@ from database.python.mongodb import db
 from .motor import MotorEconomiaGlobal
 from .producao import MotorProducao
 from .governo import MotorGoverno
+from .populacao import MotorPopulacao
 
 
 class EconomiaGlobal(commands.Cog):
@@ -12,6 +13,7 @@ class EconomiaGlobal(commands.Cog):
         self.motor = MotorEconomiaGlobal(db)
         self.producao = MotorProducao(db, self.motor)
         self.governo = MotorGoverno(db, self.motor)
+        self.populacao = MotorPopulacao(db, self.motor)
         self.ciclo_economico.start()
 
     def cog_unload(self):
@@ -21,7 +23,7 @@ class EconomiaGlobal(commands.Cog):
     async def ciclo_economico(self):
         resultado = self.motor.ciclo_economico()
         estado = resultado.get("estado", {})
-        print(f"🌐 Ciclo econômico: índice={estado.get('indice_precos', 0):.4f} | reposição={resultado.get('reposicoes', 0)} | empresas={resultado.get('empresas', 0)} | inadimplentes={resultado.get('inadimplentes', 0)}")
+        print(f"🌐 Ciclo econômico: índice={estado.get('indice_precos', 0):.4f} | reposição={resultado.get('reposicoes', 0)} | empresas={resultado.get('empresas', 0)} | inadimplentes={resultado.get('inadimplentes', 0)} | populações={resultado.get('populacoes', 0)}")
 
     @ciclo_economico.before_loop
     async def antes_ciclo(self):
@@ -62,6 +64,53 @@ class EconomiaGlobal(commands.Cog):
     async def criar_governo(self, ctx, nome: str, tesouro_bronze: float = 0):
         resultado = self.governo.criar_governo(ctx.guild.id, nome, tesouro_bronze)
         await ctx.send(embed=discord.Embed(title="🏛️ Governo criado", description=f"**{resultado['nome']}**\nTesouro inicial: {self.motor.formatar_moeda(tesouro_bronze)}", color=discord.Color.green()))
+
+    @commands.command(name="configurar_populacao", aliases=["configpopulacao"])
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def configurar_populacao(self, ctx, quantidade: int):
+        resultado = self.populacao.configurar_populacao(ctx.guild.id, quantidade)
+        if "erro" in resultado:
+            await ctx.send(f"❌ {resultado['erro']}")
+            return
+        classes = resultado["classes"]
+        embed = discord.Embed(title="👥 População configurada", color=discord.Color.green())
+        embed.add_field(name="População total", value=f"{resultado['quantidade']:,}")
+        embed.add_field(name="Classe baixa", value=f"{classes.get('baixa', 0):,}")
+        embed.add_field(name="Classe média", value=f"{classes.get('media', 0):,}")
+        embed.add_field(name="Classe alta", value=f"{classes.get('alta', 0):,}")
+        embed.add_field(name="Renda mensal agregada", value=self.motor.formatar_moeda(resultado["renda_mensal_total_bronze"]), inline=False)
+        await ctx.send(embed=embed)
+
+    @commands.command(name="definir_desemprego")
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def definir_desemprego(self, ctx, percentual: float):
+        resultado = self.populacao.definir_desemprego(ctx.guild.id, percentual / 100)
+        if "erro" in resultado:
+            await ctx.send("❌ Configure a população antes.")
+            return
+        embed = discord.Embed(title="📉 Mercado de trabalho atualizado", color=discord.Color.orange())
+        embed.add_field(name="Desemprego", value=f"{resultado['taxa'] * 100:.2f}%")
+        embed.add_field(name="Empregados", value=f"{resultado['empregados']:,}")
+        embed.add_field(name="Desempregados", value=f"{resultado['desempregados']:,}")
+        await ctx.send(embed=embed)
+
+    @commands.command(name="populacao", aliases=["demografia"])
+    @commands.guild_only()
+    async def populacao(self, ctx):
+        pop = self.populacao.populacoes.find_one({"governo_id": str(ctx.guild.id)})
+        if not pop:
+            await ctx.send("❌ A população econômica ainda não foi configurada.")
+            return
+        poder = self.populacao.poder_de_compra(ctx.guild.id)
+        embed = discord.Embed(title="👥 Economia da População", color=discord.Color.blue())
+        embed.add_field(name="População", value=f"{pop.get('quantidade', 0):,}")
+        embed.add_field(name="Empregados", value=f"{pop.get('empregados', 0):,}")
+        embed.add_field(name="Desemprego", value=f"{float(pop.get('taxa_desemprego', 0)) * 100:.2f}%")
+        embed.add_field(name="Renda nominal", value=self.motor.formatar_moeda(poder.get("renda_nominal", 0)), inline=False)
+        embed.add_field(name="Poder de compra real", value=self.motor.formatar_moeda(poder.get("renda_real", 0)), inline=False)
+        await ctx.send(embed=embed)
 
     @commands.command(name="definir_imposto")
     @commands.guild_only()
