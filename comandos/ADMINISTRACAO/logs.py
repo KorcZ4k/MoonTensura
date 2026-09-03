@@ -3,6 +3,7 @@ from discord.ext import commands
 from database.python.mongodb import db
 
 CONFIG = db["configuracoes_servidor"]
+CANAL_LOGS_PADRAO = 1545142627547091057
 
 
 class Logs(commands.Cog):
@@ -14,9 +15,10 @@ class Logs(commands.Cog):
 
     async def _send_log(self, guild, embed):
         config = self._config(guild.id)
-        channel_id = config.get("logs_channel_id")
-        if not channel_id:
-            return
+        channel_id = config.get(
+            "logs_channel_id",
+            CANAL_LOGS_PADRAO
+        )
 
         channel = guild.get_channel(channel_id)
         if channel:
@@ -30,8 +32,11 @@ class Logs(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def logs(self, ctx):
         config = self._config(ctx.guild.id)
-        channel_id = config.get("logs_channel_id")
-        channel = ctx.guild.get_channel(channel_id) if channel_id else None
+        channel_id = config.get(
+            "logs_channel_id",
+            CANAL_LOGS_PADRAO
+        )
+        channel = ctx.guild.get_channel(channel_id)
 
         embed = discord.Embed(
             title="📜 Sistema de Logs",
@@ -40,7 +45,7 @@ class Logs(commands.Cog):
         )
         embed.add_field(
             name="Canal atual",
-            value=channel.mention if channel else "Não configurado",
+            value=channel.mention if channel else f"`{channel_id}`",
             inline=False
         )
         embed.add_field(
@@ -67,7 +72,7 @@ class Logs(commands.Cog):
     async def logs_disable(self, ctx):
         CONFIG.update_one(
             {"guild_id": ctx.guild.id},
-            {"$unset": {"logs_channel_id": ""}},
+            {"$set": {"logs_channel_id": None}},
             upsert=True
         )
         await ctx.send(embed=discord.Embed(
