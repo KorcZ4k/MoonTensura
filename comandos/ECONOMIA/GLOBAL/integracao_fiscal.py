@@ -13,11 +13,10 @@ class IntegradorFiscalMacroeconomico:
         from comandos.ECONOMIA.GLOBAL.politica_fiscal import MotorPoliticaFiscal
 
         macro = macro or {}
-        motor_fiscal = MotorPoliticaFiscal(self.db, self.motor)
-        resultados = motor_fiscal.processar_ciclo(macro)
+        resultados = MotorPoliticaFiscal(self.db, self.motor).processar_ciclo(macro)
 
-        receita = sum(float(x.get("receita_bronze", 0.0)) for x in self.db["Economia_Orcamentos_Publicos"].find())
-        gasto = sum(float(x.get("gasto_bronze", 0.0)) for x in self.db["Economia_Orcamentos_Publicos"].find())
+        receita = sum(float(x.get("receita_bronze", 0.0)) for x in resultados)
+        gasto = sum(float(x.get("gasto_bronze", 0.0)) for x in resultados)
         saldo = sum(float(x.get("saldo_fiscal_bronze", 0.0)) for x in resultados)
         divida = sum(float(x.get("divida_total_bronze", 0.0)) for x in resultados)
         deficit = sum(float(x.get("deficit_bronze", 0.0)) for x in resultados)
