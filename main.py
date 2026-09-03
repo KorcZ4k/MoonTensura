@@ -58,12 +58,7 @@ async def on_ready():
         await canal.send(embed=embed)
 
     for guild in bot.guilds:
-        membros = [
-            member
-            for member in guild.members
-            if not member.bot
-        ]
-
+        membros = [member for member in guild.members if not member.bot]
         quantidade = cadastro(membros)
         print(f"{guild.name}: {quantidade} usuários processados.")
 
@@ -87,6 +82,7 @@ async def carregar_extensoes():
     await bot.load_extension("comandos.ADMINISTRACAO.autorole")
     await bot.load_extension("comandos.ADMINISTRACAO.configurações")
     await bot.load_extension("comandos.ADMINISTRACAO.moderacao")
+    await bot.load_extension("comandos.ADMINISTRACAO.automod")
 
 
 TOKEN = os.getenv("DISCORD_TOKEN")
