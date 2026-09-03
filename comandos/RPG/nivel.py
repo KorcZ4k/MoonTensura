@@ -1,0 +1,158 @@
+import math
+
+import discord
+from discord.ext import commands, tasks
+
+from database.python.mongodb import db
+
+
+CANAL_LEVEL_UP_ID = 1543041026158100480
+
+
+class Nivel(commands.Cog):
+
+    def __init__(self, bot):
+        self.bot = bot
+        self.verificar_niveis.start()
+
+    def cog_unload(self):
+        self.verificar_niveis.cancel()
+
+    @tasks.loop(seconds=2)
+    async def verificar_niveis(self):
+        jogadores = db["Jogadores"]
+
+        jogadores_com_xp = jogadores.find(
+            {
+                "Situação": "ativo"
+            }
+        )
+
+        for jogador in jogadores_com_xp:
+
+            user_id = jogador.get("ID")
+            guild_id = jogador.get("guild_id")
+
+            if not user_id or not guild_id:
+                continue
+
+            xp_atual = int(
+                jogador.get("XP", 0)
+                or 0
+            )
+
+            nivel_atual = int(
+                jogador.get("Nivel", 1)
+                or 1
+            )
+
+            xp_maximo = int(
+                jogador.get("XP_maximo", 100)
+                or 100
+            )
+
+            subiu_nivel = False
+
+            while xp_atual >= xp_maximo:
+
+                xp_atual -= xp_maximo
+
+                nivel_anterior = nivel_atual
+                nivel_atual += 1
+
+                xp_maximo = math.ceil(
+                    xp_maximo * 1.75
+                )
+
+                subiu_nivel = True
+
+                jogadores.update_one(
+                    {
+                        "_id": jogador["_id"]
+                    },
+                    {
+                        "$set": {
+                            "XP": xp_atual,
+                            "Nivel": nivel_atual,
+                            "XP_maximo": xp_maximo
+                        }
+                    }
+                )
+
+                await self._anunciar_level_up(
+                    user_id,
+                    guild_id,
+                    nivel_anterior,
+                    nivel_atual
+                )
+
+            if not subiu_nivel:
+
+                jogadores.update_one(
+                    {
+                        "_id": jogador["_id"],
+                        "XP_maximo": {
+                            "$exists": False
+                        }
+                    },
+                    {
+                        "$set": {
+                            "XP_maximo": xp_maximo
+                        }
+                    }
+                )
+
+    async def _anunciar_level_up(
+        self,
+        user_id,
+        guild_id,
+        nivel_anterior,
+        nivel_novo
+    ):
+
+        canal = self.bot.get_channel(
+            CANAL_LEVEL_UP_ID
+        )
+
+        if canal is None:
+
+            try:
+                canal = await self.bot.fetch_channel(
+                    CANAL_LEVEL_UP_ID
+                )
+            except (
+                discord.NotFound,
+                discord.Forbidden,
+                discord.HTTPException
+            ):
+                return
+
+        if str(canal.guild.id) != str(guild_id):
+            return
+
+        membro = canal.guild.get_member(
+            int(user_id)
+        )
+
+        if membro is not None:
+
+            jogador = membro.mention
+
+        else:
+
+            jogador = f"<@{user_id}>"
+
+        await canal.send(
+            f"🎉 {jogador} subiu de nível!\n"
+            f"**{nivel_anterior} → {nivel_novo}**"
+        )
+
+    @verificar_niveis.before_loop
+    async def antes_de_verificar_niveis(self):
+        await self.bot.wait_until_ready()
+
+
+async def setup(bot):
+    await bot.add_cog(
+        Nivel(bot)
+    )
