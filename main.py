@@ -70,6 +70,7 @@ async def carregar_extensoes():
     await bot.load_extension("comandos.ECONOMIA.recompensas")
     await bot.load_extension("comandos.ECONOMIA.hunos_interacoes")
     await bot.load_extension("comandos.ECONOMIA.GLOBAL.comandos")
+    await bot.load_extension("comandos.ECONOMIA.GLOBAL.banco_central")
 
     await bot.load_extension("comandos.ADMINISTRACAO.autorole_commands")
     await bot.load_extension("comandos.ADMINISTRACAO.autorole")
