@@ -1,0 +1,17 @@
+{
+  "itens": [
+    {"id":"mochila_maior","nome":"Mochila Maior","descricao":"Aumenta o espaço do inventário em 10 slots","preco":5000,"tipo":"upgrade","categoria":"utilidade","raridade":"comum","stackavel":false,"maximo":1},
+    {"id":"poção_vida","nome":"Poção de Vida","descricao":"Recupera 50% da vida máxima","preco":1000,"tipo":"consumivel","categoria":"cura","raridade":"comum","stackavel":true,"maximo":99},
+    {"id":"poção_mana","nome":"Poção de Mana","descricao":"Recupera 50% da mana máxima","preco":1000,"tipo":"consumivel","categoria":"cura","raridade":"comum","stackavel":true,"maximo":99},
+    {"id":"poção_cura_total","nome":"Poção de Cura Total","descricao":"Recupera 100% da vida e mana","preco":5000,"tipo":"consumivel","categoria":"cura","raridade":"raro","stackavel":true,"maximo":50},
+    {"id":"pedra_forca","nome":"Pedra da Força","descricao":"Aumenta permanentemente a Força em +5","preco":10000,"tipo":"permanente","categoria":"atributo","raridade":"raro","stackavel":false,"maximo":10},
+    {"id":"pedra_defesa","nome":"Pedra da Defesa","descricao":"Aumenta permanentemente a Defesa em +5","preco":10000,"tipo":"permanente","categoria":"atributo","raridade":"raro","stackavel":false,"maximo":10},
+    {"id":"pedra_velocidade","nome":"Pedra da Velocidade","descricao":"Aumenta permanentemente a Velocidade em +5","preco":10000,"tipo":"permanente","categoria":"atributo","raridade":"raro","stackavel":false,"maximo":10},
+    {"id":"skin_espada","nome":"Skin: Espada Flamejante","descricao":"Skin especial para sua espada","preco":25000,"tipo":"cosmetico","categoria":"skin","raridade":"epico","stackavel":false,"maximo":1},
+    {"id":"skin_armadura","nome":"Skin: Armadura de Dragão","descricao":"Skin especial para sua armadura","preco":35000,"tipo":"cosmetico","categoria":"skin","raridade":"lendario","stackavel":false,"maximo":1},
+    {"id":"amulet_roubo","nome":"Amuleto da Sorte","descricao":"Aumenta suas chances em cassinos em 10%","preco":15000,"tipo":"permanente","categoria":"sorte","raridade":"raro","stackavel":false,"maximo":1},
+    {"id":"dado_carregado","nome":"Dado Carregado","descricao":"Dá vantagem em jogos de dado (+2 em cada rolagem)","preco":20000,"tipo":"permanente","categoria":"sorte","raridade":"epico","stackavel":false,"maximo":1},
+    {"id":"pocao_xp","nome":"Poção de XP","descricao":"Ganha 500 XP instantaneamente","preco":8000,"tipo":"consumivel","categoria":"experiencia","raridade":"raro","stackavel":true,"maximo":99},
+    {"id":"pocao_xp_dobro","nome":"Poção de XP Dobro","descricao":"Dobra o XP ganho por 30 minutos","preco":15000,"tipo":"consumivel","categoria":"experiencia","raridade":"epico","stackavel":false,"maximo":10}
+  ]
+}
