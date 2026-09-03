@@ -11,7 +11,6 @@ class ComercioInternacional(commands.Cog):
         self.motor = MotorEconomiaGlobal(db)
         self.comercio = MotorComercioInternacional(db, self.motor)
 
-    # Nome específico para evitar colisão com comandos de configuração de rotas de outros sistemas.
     @commands.command(name="configurar_rota_comercial", aliases=["rota_comercial"])
     @commands.has_permissions(administrator=True)
     async def configurar_rota(self, ctx, origem: str, destino: str, modelo: str = "tradicional", distancia: float = 1, tarifa: float = 0, risco: float = 0):
@@ -45,7 +44,7 @@ class ComercioInternacional(commands.Cog):
         r = self.comercio.definir_cambio(moeda, bronze_por_unidade, governo)
         await ctx.send(embed=discord.Embed(title="💱 Câmbio Atualizado", description=f"**1 {r['moeda']} = {r['bronze_por_unidade']:,.4f} Bronze**", color=discord.Color.gold()))
 
-    @commands.command(name="cambio")
+    @commands.command(name="cambio_comercial")
     async def cambio(self, ctx, valor: float, origem: str, destino: str):
         r = self.comercio.converter(valor, origem, destino)
         if "erro" in r:
@@ -53,7 +52,7 @@ class ComercioInternacional(commands.Cog):
             return
         await ctx.send(embed=discord.Embed(title="💱 Conversão", description=f"**{valor:,.2f} {origem.upper()}** → **{r['valor']:,.2f} {destino.upper()}**\nEquivalente: **{self.motor.formatar_moeda(r['bronze_equivalente'])}**", color=discord.Color.blue()))
 
-    @commands.command(name="balanca_comercial", aliases=["balanca"])
+    @commands.command(name="balanca_comercial_global", aliases=["balanca_global"])
     async def balanca(self, ctx, governo: str):
         r = self.comercio.balanca_comercial(governo)
         e = discord.Embed(title=f"🌐 Balança Comercial — {governo}", color=discord.Color.gold())
