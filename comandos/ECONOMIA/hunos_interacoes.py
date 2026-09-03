@@ -5,29 +5,12 @@ import discord
 from discord.ext import commands
 
 from database.python.mongodb import db
-from database.python.Hunos import (
-    adicionar_hunos,
-    obter_hunos,
-    pagar_hunos,
-    depositar_hunos,
-    sacar_hunos,
-)
+from database.python.Hunos import adicionar_hunos, obter_hunos, pagar_hunos, depositar_hunos, sacar_hunos
 
-
-COOLDOWNS = {
-    "work": 3600,
-    "slut": 3600,
-    "rob": 3600,
-    "beg": 1800,
-    "crime": 7200,
-    "daily": 86400,
-    "monthly": 2592000,
-}
+COOLDOWNS = {"work": 3600, "slut": 3600, "rob": 3600, "beg": 1800, "crime": 7200, "daily": 86400, "monthly": 2592000}
 
 
 class HunosInteracoes(commands.Cog):
-    """Comandos econômicos de interação usando exclusivamente Hunos."""
-
     def __init__(self, bot):
         self.bot = bot
         self.collection = db["Hunos"]
@@ -36,10 +19,7 @@ class HunosInteracoes(commands.Cog):
         return datetime.datetime.now(datetime.timezone.utc)
 
     def _cooldown(self, user_id, guild_id, comando):
-        documento = self.collection.find_one(
-            {"ID": str(user_id), "guild_id": str(guild_id)},
-            {"cooldowns": 1}
-        ) or {}
+        documento = self.collection.find_one({"ID": str(user_id), "guild_id": str(guild_id)}, {"cooldowns": 1}) or {}
         ultimo = (documento.get("cooldowns", {}) or {}).get(comando)
         if not ultimo:
             return 0
@@ -50,21 +30,12 @@ class HunosInteracoes(commands.Cog):
                 return 0
         if ultimo.tzinfo is None:
             ultimo = ultimo.replace(tzinfo=datetime.timezone.utc)
-        restante = COOLDOWNS[comando] - (self._now() - ultimo).total_seconds()
-        return max(0, int(restante))
+        return max(0, int(COOLDOWNS[comando] - (self._now() - ultimo).total_seconds()))
 
     def _registrar_cooldown(self, user_id, guild_id, comando):
         self.collection.update_one(
             {"ID": str(user_id), "guild_id": str(guild_id)},
-            {
-                "$set": {f"cooldowns.{comando}": self._now()},
-                "$setOnInsert": {
-                    "ID": str(user_id),
-                    "guild_id": str(guild_id),
-                    "carteira": 0,
-                    "banco": 0,
-                },
-            },
+            {"$set": {f"cooldowns.{comando}": self._now()}, "$setOnInsert": {"ID": str(user_id), "guild_id": str(guild_id), "carteira": 0, "banco": 0}},
             upsert=True,
         )
 
@@ -83,31 +54,16 @@ class HunosInteracoes(commands.Cog):
     async def _ganhar(self, ctx, comando, minimo, maximo, titulo, texto):
         restante = self._cooldown(ctx.author.id, ctx.guild.id, comando)
         if restante > 0:
-            await ctx.send(embed=discord.Embed(
-                title="⏳ Cooldown",
-                description=f"Tente novamente em **{self._tempo(restante)}**.",
-                color=discord.Color.orange(),
-            ))
+            await ctx.send(embed=discord.Embed(title="⏳ Cooldown", description=f"Tente novamente em **{self._tempo(restante)}**.", color=discord.Color.orange()))
             return
-
         quantidade = random.randint(minimo, maximo)
         try:
             adicionar_hunos(ctx.author.id, ctx.guild.id, quantidade)
         except ValueError:
-            self.collection.update_one(
-                {"ID": str(ctx.author.id), "guild_id": str(ctx.guild.id)},
-                {"$setOnInsert": {"carteira": 0, "banco": 0}},
-                upsert=True,
-            )
+            self.collection.update_one({"ID": str(ctx.author.id), "guild_id": str(ctx.guild.id)}, {"$setOnInsert": {"carteira": 0, "banco": 0}}, upsert=True)
             adicionar_hunos(ctx.author.id, ctx.guild.id, quantidade)
-
         self._registrar_cooldown(ctx.author.id, ctx.guild.id, comando)
-        await ctx.send(embed=discord.Embed(
-            title=titulo,
-            description=f"{texto}\n\n💰 Você recebeu **{quantidade:,} Hunos**.",
-            color=discord.Color.green(),
-            timestamp=discord.utils.utcnow(),
-        ))
+        await ctx.send(embed=discord.Embed(title=titulo, description=f"{texto}\n\n💰 Você recebeu **{quantidade:,} Hunos**.", color=discord.Color.green(), timestamp=discord.utils.utcnow()))
 
     @commands.command(name="work", aliases=["trabalhar"])
     @commands.guild_only()
@@ -124,7 +80,7 @@ class HunosInteracoes(commands.Cog):
     async def beg(self, ctx):
         await self._ganhar(ctx, "beg", 25, 300, "🪙 Ajuda", "Alguém decidiu ajudar você.")
 
-    @commands.command(name="crime", aliases=["crime"])
+    @commands.command(name="crime")
     @commands.guild_only()
     async def crime(self, ctx):
         restante = self._cooldown(ctx.author.id, ctx.guild.id, "crime")
@@ -139,15 +95,13 @@ class HunosInteracoes(commands.Cog):
             except ValueError:
                 self.collection.update_one({"ID": str(ctx.author.id), "guild_id": str(ctx.guild.id)}, {"$setOnInsert": {"carteira": 0, "banco": 0}}, upsert=True)
                 adicionar_hunos(ctx.author.id, ctx.guild.id, quantidade)
-            descricao = f"O crime deu certo. Você obteve **{quantidade:,} Hunos**."
-            cor = discord.Color.green()
+            descricao, cor = f"O crime deu certo. Você obteve **{quantidade:,} Hunos**.", discord.Color.green()
         else:
             saldo = obter_hunos(ctx.author.id, ctx.guild.id)["carteira"]
             perda = min(saldo, random.randint(100, 1000))
             if perda:
                 self.collection.update_one({"ID": str(ctx.author.id), "guild_id": str(ctx.guild.id)}, {"$inc": {"carteira": -perda}})
-            descricao = f"O crime falhou. Você perdeu **{perda:,} Hunos**."
-            cor = discord.Color.red()
+            descricao, cor = f"O crime falhou. Você perdeu **{perda:,} Hunos**.", discord.Color.red()
         await ctx.send(embed=discord.Embed(title="🕵️ Crime", description=descricao, color=cor))
 
     @commands.command(name="rob", aliases=["roubar"])
@@ -168,18 +122,13 @@ class HunosInteracoes(commands.Cog):
         if random.random() < 0.45:
             quantidade = min(saldo_alvo, random.randint(1, max(1, int(saldo_alvo * 0.25))))
             self.collection.update_one({"ID": str(alvo.id), "guild_id": str(ctx.guild.id), "carteira": {"$gte": quantidade}}, {"$inc": {"carteira": -quantidade}})
-            try:
-                adicionar_hunos(ctx.author.id, ctx.guild.id, quantidade)
-            except ValueError:
-                self.collection.update_one({"ID": str(ctx.author.id), "guild_id": str(ctx.guild.id)}, {"$setOnInsert": {"carteira": quantidade, "banco": 0}}, upsert=True)
-            texto = f"Você roubou **{quantidade:,} Hunos** de {alvo.mention}."
-            cor = discord.Color.green()
+            adicionar_hunos(ctx.author.id, ctx.guild.id, quantidade)
+            texto, cor = f"Você roubou **{quantidade:,} Hunos** de {alvo.mention}.", discord.Color.green()
         else:
             multa = min(obter_hunos(ctx.author.id, ctx.guild.id)["carteira"], random.randint(50, 500))
             if multa:
                 self.collection.update_one({"ID": str(ctx.author.id), "guild_id": str(ctx.guild.id)}, {"$inc": {"carteira": -multa}})
-            texto = f"Você falhou no roubo e perdeu **{multa:,} Hunos**."
-            cor = discord.Color.red()
+            texto, cor = f"Você falhou no roubo e perdeu **{multa:,} Hunos**.", discord.Color.red()
         await ctx.send(embed=discord.Embed(title="🦹 Roubo", description=texto, color=cor))
 
     @commands.command(name="pay")
