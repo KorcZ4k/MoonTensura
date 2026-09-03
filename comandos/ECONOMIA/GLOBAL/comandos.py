@@ -5,6 +5,7 @@ from .motor import MotorEconomiaGlobal
 from .producao import MotorProducao
 from .governo import MotorGoverno
 from .populacao import MotorPopulacao
+from .comercio import MotorComercioInternacional
 
 
 class EconomiaGlobal(commands.Cog):
@@ -14,6 +15,7 @@ class EconomiaGlobal(commands.Cog):
         self.producao = MotorProducao(db, self.motor)
         self.governo = MotorGoverno(db, self.motor)
         self.populacao = MotorPopulacao(db, self.motor)
+        self.comercio = MotorComercioInternacional(db, self.motor, self.governo)
         self.ciclo_economico.start()
 
     def cog_unload(self):
@@ -28,6 +30,49 @@ class EconomiaGlobal(commands.Cog):
     @ciclo_economico.before_loop
     async def antes_ciclo(self):
         await self.bot.wait_until_ready()
+
+    @commands.command(name="configurar_rota")
+    @commands.has_permissions(administrator=True)
+    async def configurar_rota(self, ctx, destino_id: str, modelo: str = "tradicional", distancia: float = 1.0):
+        resultado = self.comercio.configurar_rota(ctx.guild.id, destino_id, distancia, modelo)
+        if "erro" in resultado:
+            await ctx.send(f"❌ {resultado['erro']}")
+            return
+        embed = discord.Embed(title="🛤️ Rota comercial configurada", color=discord.Color.green())
+        embed.add_field(name="Origem", value=str(ctx.guild.id))
+        embed.add_field(name="Destino", value=str(destino_id))
+        embed.add_field(name="Modelo", value=resultado["modelo"].capitalize())
+        embed.add_field(name="Custo logístico", value=f"{resultado['custo_logistico_percentual'] * 100:.2f}%")
+        await ctx.send(embed=embed)
+
+    @commands.command(name="comerciar")
+    @commands.has_permissions(administrator=True)
+    async def comerciar(self, ctx, destino_id: str, produto: str, valor_bronze: float, quantidade: int = 1):
+        resultado = self.comercio.realizar_comercio(ctx.guild.id, destino_id, produto, valor_bronze, quantidade)
+        if "erro" in resultado:
+            mensagens = {"rota_inexistente": "Não existe uma rota comercial ativa para esse destino.", "governo_inexistente": "Os dois governos precisam estar configurados.", "comercio_interno": "Utilize mercados locais para comércio interno."}
+            await ctx.send(f"❌ {mensagens.get(resultado['erro'], resultado['erro'])}")
+            return
+        embed = discord.Embed(title="🚢 Comércio internacional realizado", color=discord.Color.blue())
+        embed.add_field(name="Produto", value=resultado["produto"])
+        embed.add_field(name="Quantidade", value=str(resultado["quantidade"]))
+        embed.add_field(name="Valor da carga", value=self.motor.formatar_moeda(resultado["valor_carga_bronze"]))
+        embed.add_field(name="Logística", value=self.motor.formatar_moeda(resultado["custo_logistico_bronze"]))
+        embed.add_field(name="Tarifa de exportação", value=self.motor.formatar_moeda(resultado["tarifa_exportacao_bronze"]))
+        embed.add_field(name="Tarifa de importação", value=self.motor.formatar_moeda(resultado["tarifa_importacao_bronze"]))
+        embed.add_field(name="Custo final", value=self.motor.formatar_moeda(resultado["custo_final_bronze"]), inline=False)
+        await ctx.send(embed=embed)
+
+    @commands.command(name="balanca_comercial", aliases=["balanca"])
+    async def balanca_comercial(self, ctx):
+        dados = self.comercio.balanca_comercial(ctx.guild.id)
+        saldo = float(dados.get("saldo_bronze", 0))
+        cor = discord.Color.green() if saldo >= 0 else discord.Color.red()
+        embed = discord.Embed(title="⚖️ Balança Comercial", color=cor)
+        embed.add_field(name="Exportações", value=self.motor.formatar_moeda(dados.get("exportacoes_bronze", 0)))
+        embed.add_field(name="Importações", value=self.motor.formatar_moeda(dados.get("importacoes_bronze", 0)))
+        embed.add_field(name="Saldo", value=self.motor.formatar_moeda(abs(saldo)) + (" de superávit" if saldo >= 0 else " de déficit"), inline=False)
+        await ctx.send(embed=embed)
 
     @commands.command(name="configurar_mercado", aliases=["configmercado"])
     @commands.guild_only()
