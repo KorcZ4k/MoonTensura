@@ -59,9 +59,9 @@ async def carregar_extensoes():
     extensoes = [
         "comandos.RPG.luta", "comandos.RPG.treino", "comandos.RPG.magias", "comandos.RPG.habs", "comandos.RPG.usarhab", "comandos.RPG.status", "comandos.RPG.nivel", "comandos.RPG.nascimento", "comandos.RPG.correcoes_luta", "comandos.RPG.status_habilidades",
         "comandos.ECONOMIA.cassino", "comandos.ECONOMIA.loja", "comandos.ECONOMIA.loja_canais", "comandos.ECONOMIA.Hunos", "comandos.ECONOMIA.Mora", "comandos.ECONOMIA.recompensas", "comandos.ECONOMIA.hunos_interacoes",
-        "comandos.ECONOMIA.MEMBROS.empresas",
+        "comandos.ECONOMIA.MEMBROS.empresas", "comandos.ECONOMIA.MEMBROS.paineis",
         "comandos.ECONOMIA.ADMIN.governos",
-        "comandos.ECONOMIA.GLOBAL.comandos", "comandos.ECONOMIA.GLOBAL.banco_central", "comandos.ECONOMIA.GLOBAL.credito_comandos", "comandos.ECONOMIA.GLOBAL.comercio_comandos", "comandos.ECONOMIA.GLOBAL.trabalho_comandos",
+        "comandos.ECONOMIA.GLOBAL.comandos", "comandos.ECONOMIA.GLOBAL.banco_central", "comandos.ECONOMIA.GLOBAL.credito_comandos", "comandos.ECONOMIA.GLOBAL.comercio_comandos", "comandos.ECONOMIA.GLOBAL.trabalho_comandos", "comandos.ECONOMIA.GLOBAL.teste_integracao",
         "comandos.ADMINISTRACAO.autorole_commands", "comandos.ADMINISTRACAO.autorole", "comandos.ADMINISTRACAO.configurações", "comandos.ADMINISTRACAO.moderacao", "comandos.ADMINISTRACAO.automod", "comandos.ADMINISTRACAO.boas_vindas", "comandos.ADMINISTRACAO.logs", "comandos.ADMINISTRACAO.ajuda"
     ]
 
