@@ -1,0 +1,196 @@
+{
+  "versao": 1,
+  "configuracao": {
+    "intervalo_eventos_segundos": 60,
+    "chance_evento": 0.35,
+    "xp_perdido_por_evento_ignorado_percentual": 1,
+    "xp_multiplicador_minimo": 0
+  },
+  "eventos": {
+    "refugiados": {
+      "categoria": "positivo",
+      "hostil": false,
+      "peso": 30,
+      "decisoes": ["aceitar", "recusar"],
+      "quantidade": {
+        "formula": "fibonacci",
+        "sequencia_inicial": [1, 1, 2, 3, 5, 8],
+        "nivel_1": 1,
+        "nivel_2": 1,
+        "nivel_3": 2,
+        "nivel_4": 3,
+        "nivel_5": 5,
+        "nivel_6": 8
+      },
+      "resultado_ao_aceitar": {
+        "populacao": "quantidade_de_refugiados"
+      },
+      "xp": {
+        "jogador": 0,
+        "assentamento": true
+      }
+    },
+    "bandidos": {
+      "categoria": "ameaca",
+      "hostil": true,
+      "peso": 25,
+      "decisoes": ["aceitar", "recusar", "lutar"],
+      "ficha": {
+        "nivel_base": 1,
+        "atributos_nivel_1": 100,
+        "multiplicador_por_nivel": 1.75,
+        "formula": "100 * (1.75 ** (nivel - 1))",
+        "atributos": ["Força", "Defesa", "Velocidade", "Destreza", "Magia", "Sorte"],
+        "habilidades": false,
+        "magias": true
+      },
+      "recompensas": {
+        "hunos": true,
+        "armas_para_estoque": true,
+        "xp_jogador_por_nivel_inimigo": true,
+        "xp_assentamento": true
+      }
+    },
+    "monstro": {
+      "categoria": "ameaca",
+      "hostil": true,
+      "peso": 20,
+      "decisoes": ["aceitar", "recusar", "lutar"],
+      "origem": "racas_e_monstros_do_servidor",
+      "nivel": {
+        "nivel_assentamento_1": 1,
+        "nivel_assentamento_2": 1,
+        "a_partir_do_nivel_3": "nivel_assentamento - 1"
+      },
+      "recompensas": {
+        "hunos": true,
+        "armas_para_estoque": true,
+        "xp_jogador_por_nivel_inimigo": true,
+        "xp_assentamento": true
+      }
+    },
+    "mercador": {
+      "categoria": "positivo",
+      "hostil": false,
+      "peso": 10,
+      "decisoes": ["aceitar", "recusar"],
+      "preco": {
+        "variacoes_percentuais": [-10, 10],
+        "base": "preco_do_mercado"
+      },
+      "xp": {
+        "jogador": 0,
+        "assentamento": true
+      }
+    },
+    "viajantes": {
+      "categoria": "variavel",
+      "hostil": false,
+      "peso": 8,
+      "decisoes": ["aceitar", "recusar"],
+      "resultados": [
+        "roubar_10_porcento_hunos_bronze",
+        "roubar_um_tipo_de_recurso",
+        "virar_populacao"
+      ],
+      "roubo_hunos_percentual": 10,
+      "xp": {
+        "jogador": 0,
+        "assentamento": true
+      }
+    },
+    "descoberta_recurso": {
+      "categoria": "variavel",
+      "hostil": false,
+      "peso": 7,
+      "decisoes": ["aceitar", "recusar"],
+      "probabilidades": {
+        "recurso_utilizavel": 50,
+        "recurso_inutilizado": 50
+      },
+      "xp": {
+        "jogador": 0,
+        "assentamento": true
+      }
+    },
+    "caravana": {
+      "categoria": "positivo",
+      "hostil": false,
+      "peso": 8,
+      "decisoes": ["aceitar", "recusar", "abrir_loja"],
+      "efeito": "abrir_loja_temporaria_no_chat_do_evento",
+      "xp": {
+        "jogador": 0,
+        "assentamento": true
+      }
+    },
+    "ameaca_territorial": {
+      "categoria": "ameaca",
+      "hostil": true,
+      "geracao_automatica": false,
+      "origem": "apenas_players",
+      "decisoes": ["aceitar", "recusar", "lutar"]
+    }
+  },
+  "assentamento": {
+    "recursos_iniciais": [
+      "madeira", "pedras", "tijolos", "argila", "cimento", "ferro", "metal", "aco",
+      "carne", "peixe", "graos", "trigo", "arroz", "milho", "leite", "ovos",
+      "areia", "vidro", "cobre", "bronze", "prata", "ouro", "carvao", "agua",
+      "ervas", "couro", "la", "algodao", "tecido", "papel", "ferramentas"
+    ],
+    "estoque_armas_inicial": {},
+    "edificios_construidos_inicial": {},
+    "edificios_em_construcao_inicial": {},
+    "xp_eventos_multiplicador_inicial": 1.0,
+    "xp_eventos_perdido_percentual_inicial": 0.0
+  },
+  "evolucao_assentamento": {
+    "base": {
+      "nivel_1": 0,
+      "nivel_2": 100,
+      "nivel_3": 150,
+      "nivel_4": 250,
+      "nivel_5": 350,
+      "nivel_6": 500,
+      "nivel_7": 700,
+      "nivel_8": 950,
+      "nivel_9": 1250,
+      "nivel_10": 1600
+    },
+    "regra_apos_nivel_10": "aumentar_a_diferenca_anterior_em_50_por_nivel"
+  },
+  "construcoes": {
+    "nivel_minimo_assentamento": {
+      "nivel_construcao_1": [1, 10],
+      "nivel_construcao_2": [11, 20],
+      "nivel_construcao_3": [21, 30],
+      "nivel_construcao_4": [31, 40],
+      "nivel_construcao_5": [41, 50],
+      "nivel_construcao_6": [51, 60],
+      "nivel_construcao_7": [61, 70],
+      "nivel_construcao_8": [71, 80],
+      "nivel_construcao_9": [81, 90],
+      "nivel_construcao_10": [91, 100]
+    },
+    "dados_armazenados": [
+      "tipo",
+      "nivel",
+      "recursos_gastos",
+      "quantidades",
+      "especificidades_terreno",
+      "data_inicio",
+      "data_conclusao"
+    ]
+  },
+  "xp": {
+    "eventos_de_luta": {
+      "jogador": "respectivo_ao_nivel_do_inimigo",
+      "assentamento": true
+    },
+    "eventos_sem_luta": {
+      "jogador": 0,
+      "assentamento": true
+    }
+  }
+}
