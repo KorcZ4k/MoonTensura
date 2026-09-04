@@ -5,6 +5,9 @@ from discord.ext import commands
 from database.python.mongodb import db
 
 
+NIVEL_MINIMO_REINO = 100
+
+
 class ReinosMembros(commands.Cog):
     """Assentamentos e reinos vinculados ao ID de cada jogador."""
 
@@ -27,29 +30,47 @@ class ReinosMembros(commands.Cog):
 
     @commands.command(name="assentamento")
     @commands.guild_only()
-    async def assentamento(self, ctx, nome: str, tipo: str = "aldeia"):
+    async def assentamento(self, ctx, *, nome: str):
+        """Cria o primeiro assentamento do jogador, sempre como uma aldeia."""
         existente = self._assentamento(ctx.guild.id, ctx.author.id)
         if existente:
-            await ctx.send(f"❌ Você já possui o assentamento **{existente['nome']}**. Use `!reino menu` para consultar seu progresso.")
+            await ctx.send(
+                f"❌ Você já possui a aldeia **{existente['nome']}**. "
+                "Use `!reino menu` para consultar seu progresso."
+            )
             return
 
         assentamento_id = f"ass-{uuid4().hex[:12]}"
+        agora = self.agora()
         documento = {
             "assentamento_id": assentamento_id,
             "guild_id": str(ctx.guild.id),
             "owner_id": str(ctx.author.id),
             "nome": nome,
-            "tipo": tipo.lower(),
+            "tipo": "aldeia",
             "status": "ativo",
             "nivel": 1,
             "populacao": 0,
             "reino_id": None,
-            "criado_em": self.agora(),
-            "atualizado_em": self.agora(),
+            "criado_em": agora,
+            "atualizado_em": agora,
         }
         self.assentamentos.insert_one(documento)
-        self.eventos.insert_one({"tipo": "fundacao_assentamento", "guild_id": str(ctx.guild.id), "owner_id": str(ctx.author.id), "assentamento_id": assentamento_id, "nome": nome, "criado_em": self.agora()})
-        await ctx.send(f"🏕️ Assentamento **{nome}** fundado como **{tipo}**.\nAgora você pode usar `!reino fundar <nome do reino>`.")
+        self.eventos.insert_one({
+            "tipo": "fundacao_assentamento",
+            "guild_id": str(ctx.guild.id),
+            "owner_id": str(ctx.author.id),
+            "assentamento_id": assentamento_id,
+            "nome": nome,
+            "categoria": "aldeia",
+            "criado_em": agora,
+        })
+        await ctx.send(
+            f"🏕️ Sua **Aldeia {nome}** foi fundada!\n"
+            f"📈 Nível inicial: **1/100**\n"
+            f"👑 Para fundar um reino, sua aldeia precisa alcançar o **nível {NIVEL_MINIMO_REINO}**.\n"
+            "Use `!reino menu` para acompanhar seu progresso."
+        )
 
     @commands.group(name="reino", invoke_without_command=True)
     @commands.guild_only()
@@ -61,17 +82,47 @@ class ReinosMembros(commands.Cog):
         reino = self._reino(ctx.guild.id, ctx.author.id)
         assentamento = self._assentamento(ctx.guild.id, ctx.author.id)
         if not reino and not assentamento:
-            await ctx.send("🏕️ Você ainda não possui um assentamento. Use `!assentamento <nome>` para iniciar.")
+            await ctx.send("🏕️ Você ainda não possui uma aldeia. Use `!assentamento <nome>` para iniciar.")
             return
 
         embed = discord.Embed(title="🏛️ Menu do Reino", color=discord.Color.gold())
         if assentamento:
-            embed.add_field(name="Assentamento", value=f"**{assentamento['nome']}**\nTipo: {assentamento.get('tipo', 'aldeia')}\nNível: {assentamento.get('nivel', 1)}\nPopulação: {assentamento.get('populacao', 0):,}", inline=False)
+            nivel = int(assentamento.get("nivel", 1))
+            progresso = min(100, max(0, nivel))
+            barra = "█" * (progresso // 10) + "░" * (10 - (progresso // 10))
+            embed.add_field(
+                name="🏕️ Aldeia",
+                value=(
+                    f"**{assentamento['nome']}**\n"
+                    f"Nível: **{nivel}/{NIVEL_MINIMO_REINO}**\n"
+                    f"`{barra}`\n"
+                    f"População: **{assentamento.get('populacao', 0):,}**"
+                ),
+                inline=False,
+            )
         if reino:
             tesouro = self.tesouros.find_one({"governo_id": reino["governo_id"]}) or {}
-            embed.add_field(name="Reino", value=f"**{reino['nome']}**\nID: `{reino['governo_id']}`\nStatus: {reino.get('status', 'ativo')}\nTesouro: {float(tesouro.get('saldo_bronze', 0)):,.0f} Hunos", inline=False)
+            embed.add_field(
+                name="👑 Reino",
+                value=(
+                    f"**{reino['nome']}**\n"
+                    f"ID: `{reino['governo_id']}`\n"
+                    f"Status: {reino.get('status', 'ativo')}\n"
+                    f"Tesouro: {float(tesouro.get('saldo_bronze', 0)):,.0f} Hunos"
+                ),
+                inline=False,
+            )
         else:
-            embed.add_field(name="Reino", value="Ainda não fundado. Use `!reino fundar <nome>`.", inline=False)
+            nivel = int(assentamento.get("nivel", 1)) if assentamento else 0
+            faltam = max(0, NIVEL_MINIMO_REINO - nivel)
+            embed.add_field(
+                name="👑 Fundação do Reino",
+                value=(
+                    "🔒 Bloqueada até sua aldeia alcançar o nível 100.\n"
+                    f"Faltam **{faltam} níveis**."
+                ),
+                inline=False,
+            )
         embed.set_footer(text="Seu reino é vinculado ao seu ID do Discord.")
         await ctx.send(embed=embed)
 
@@ -80,9 +131,20 @@ class ReinosMembros(commands.Cog):
         if self._reino(ctx.guild.id, ctx.author.id):
             await ctx.send("❌ Você já possui um reino ativo neste servidor.")
             return
+
         assentamento = self._assentamento(ctx.guild.id, ctx.author.id)
         if not assentamento:
-            await ctx.send("❌ Primeiro crie um assentamento com `!assentamento <nome>`.")
+            await ctx.send("❌ Primeiro crie uma aldeia com `!assentamento <nome>`.")
+            return
+
+        nivel_assentamento = int(assentamento.get("nivel", 1))
+        if nivel_assentamento < NIVEL_MINIMO_REINO:
+            faltam = NIVEL_MINIMO_REINO - nivel_assentamento
+            await ctx.send(
+                "🔒 Você ainda não pode fundar um reino.\n"
+                f"Sua aldeia está no **nível {nivel_assentamento}/{NIVEL_MINIMO_REINO}**.\n"
+                f"Faltam **{faltam} níveis** para desbloquear `!reino fundar`."
+            )
             return
 
         governo_id = f"rei-{uuid4().hex[:12]}"
@@ -103,10 +165,33 @@ class ReinosMembros(commands.Cog):
             "atualizado_em": agora,
         }
         self.reinos.insert_one(reino)
-        self.tesouros.insert_one({"governo_id": governo_id, "guild_id": str(ctx.guild.id), "owner_id": str(ctx.author.id), "saldo_bronze": 0.0, "receita_total_bronze": 0.0, "gasto_total_bronze": 0.0, "divida_publica_bronze": 0.0, "criado_em": agora})
-        self.assentamentos.update_one({"_id": assentamento["_id"]}, {"$set": {"reino_id": governo_id, "atualizado_em": agora}})
-        self.eventos.insert_one({"tipo": "fundacao_reino", "guild_id": str(ctx.guild.id), "owner_id": str(ctx.author.id), "governo_id": governo_id, "nome": nome, "criado_em": agora})
-        await ctx.send(f"👑 O Reino **{nome}** foi fundado com sucesso!\nID do Reino: `{governo_id}`\nUse `!reino menu` para ver suas informações.")
+        self.tesouros.insert_one({
+            "governo_id": governo_id,
+            "guild_id": str(ctx.guild.id),
+            "owner_id": str(ctx.author.id),
+            "saldo_bronze": 0.0,
+            "receita_total_bronze": 0.0,
+            "gasto_total_bronze": 0.0,
+            "divida_publica_bronze": 0.0,
+            "criado_em": agora,
+        })
+        self.assentamentos.update_one(
+            {"_id": assentamento["_id"]},
+            {"$set": {"reino_id": governo_id, "atualizado_em": agora}},
+        )
+        self.eventos.insert_one({
+            "tipo": "fundacao_reino",
+            "guild_id": str(ctx.guild.id),
+            "owner_id": str(ctx.author.id),
+            "governo_id": governo_id,
+            "nome": nome,
+            "criado_em": agora,
+        })
+        await ctx.send(
+            f"👑 O Reino **{nome}** foi fundado com sucesso!\n"
+            f"ID do Reino: `{governo_id}`\n"
+            "Use `!reino menu` para ver suas informações."
+        )
 
 
 async def setup(bot):
