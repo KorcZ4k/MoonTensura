@@ -65,20 +65,34 @@ async def carregar_extensoes():
         "comandos.ADMINISTRACAO.autorole_commands", "comandos.ADMINISTRACAO.autorole", "comandos.ADMINISTRACAO.configurações", "comandos.ADMINISTRACAO.moderacao", "comandos.ADMINISTRACAO.automod", "comandos.ADMINISTRACAO.boas_vindas", "comandos.ADMINISTRACAO.logs", "comandos.ADMINISTRACAO.ajuda"
     ]
 
+    extensoes_duplicadas = sorted({extensao for extensao in extensoes if extensoes.count(extensao) > 1})
+    if extensoes_duplicadas:
+        raise RuntimeError("Extensões duplicadas na lista: " + ", ".join(extensoes_duplicadas))
+
     auditoria = await asyncio.to_thread(AuditoriaEconomia(db).executar)
-    print(f"Auditoria ECONOMIA: {AuditoriaEconomia.resumo(auditoria)}")
+    print(f"Auditoria GLOBAL: {AuditoriaEconomia.resumo(auditoria)}")
     if auditoria["arquivos_com_erro"]:
         for item in auditoria["detalhes"]:
             if item["status"] == "erro":
                 print(f"[AUDITORIA][ERRO] {item['arquivo']}: {' | '.join(item['erros'])}")
+        raise RuntimeError("A auditoria global encontrou arquivos com erro de sintaxe ou leitura.")
+
     if auditoria["conflitos_comandos"]:
-        print("[AUDITORIA] Conflitos de comandos detectados:")
+        print("[AUDITORIA] Conflitos de comandos/aliases detectados:")
         for conflito in auditoria["conflitos_comandos"]:
-            print(f"  - {conflito['nome']}: {', '.join(conflito['arquivos'])}")
-        raise RuntimeError("A auditoria da ECONOMIA encontrou comandos duplicados. Corrija os conflitos antes de iniciar o bot.")
+            locais = []
+            for registro in conflito["registros"]:
+                locais.append(f"{registro['arquivo']}:{registro['linha']} ({registro['tipo']})")
+            print(f"  - {conflito['nome']}: " + " | ".join(locais))
+        raise RuntimeError("A auditoria global encontrou comandos ou aliases duplicados. Corrija os conflitos antes de iniciar o bot.")
 
     for extensao in extensoes:
-        await bot.load_extension(extensao)
+        try:
+            await bot.load_extension(extensao)
+            print(f"[EXTENSÃO][OK] {extensao}")
+        except Exception as erro:
+            print(f"[EXTENSÃO][ERRO] {extensao}: {type(erro).__name__}: {erro}")
+            raise
 
 
 TOKEN = os.getenv("DISCORD_TOKEN")
