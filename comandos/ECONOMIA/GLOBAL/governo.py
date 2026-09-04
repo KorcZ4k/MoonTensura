@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from uuid import uuid4
 
 
 class MotorGoverno:
@@ -14,20 +15,35 @@ class MotorGoverno:
         self.tesouros = db["Economia_Tesouros"]
         self.gastos = db["Economia_Gastos_Publicos"]
 
-    def criar_governo(self, governo_id, nome, tesouro_inicial=0.0):
+    def criar_governo(self, guild_id, nome, tesouro_inicial=0.0, owner_id=None):
+        """Cria um NOVO governo sem sobrescrever governos existentes."""
+        agora = datetime.now(timezone.utc)
+        governo_id = f"gov-{uuid4().hex[:12]}"
         documento = {
-            "governo_id": str(governo_id), "nome": str(nome),
-            "status": "ativo", "taxas": {tipo: 0.0 for tipo in self.TIPOS_IMPOSTO},
+            "governo_id": governo_id,
+            "guild_id": str(guild_id),
+            "owner_id": str(owner_id) if owner_id is not None else None,
+            "nome": str(nome),
+            "status": "ativo",
+            "taxas": {tipo: 0.0 for tipo in self.TIPOS_IMPOSTO},
             "tarifas": {"importacao": 0.0, "exportacao": 0.0},
-            "criado_em": datetime.now(timezone.utc), "atualizado_em": datetime.now(timezone.utc)
+            "criado_em": agora,
+            "atualizado_em": agora,
         }
-        self.governos.update_one({"governo_id": documento["governo_id"]}, {"$set": documento}, upsert=True)
-        self.tesouros.update_one({"governo_id": documento["governo_id"]}, {"$setOnInsert": {
-            "governo_id": documento["governo_id"], "saldo_bronze": max(0.0, float(tesouro_inicial)),
-            "receita_total_bronze": 0.0, "gasto_total_bronze": 0.0,
-            "divida_publica_bronze": 0.0
-        }}, upsert=True)
-        return self.governos.find_one({"governo_id": documento["governo_id"]})
+
+        # Criação deliberadamente usa insert_one: nunca faz upsert nem substitui outro governo.
+        self.governos.insert_one(documento)
+        self.tesouros.insert_one({
+            "governo_id": governo_id,
+            "guild_id": str(guild_id),
+            "owner_id": str(owner_id) if owner_id is not None else None,
+            "saldo_bronze": max(0.0, float(tesouro_inicial)),
+            "receita_total_bronze": 0.0,
+            "gasto_total_bronze": 0.0,
+            "divida_publica_bronze": 0.0,
+            "criado_em": agora,
+        })
+        return documento
 
     def definir_imposto(self, governo_id, tipo, aliquota):
         tipo = str(tipo).lower()
