@@ -1,34 +1,37 @@
-"""Auditoria estática da camada ECONOMIA.
+"""Auditoria estática global dos comandos do bot.
 
 Executa antes do carregamento das extensões e detecta erros de sintaxe,
-comandos duplicados, aliases duplicados, decorators inválidos e problemas
-estruturais básicos em todos os arquivos Python sob comandos/ECONOMIA.
+comandos duplicados, aliases duplicados e colisões entre comandos e aliases
+nas áreas RPG, ECONOMIA e ADMINISTRACAO.
 """
 
 import ast
-import json
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
 
-RAIZ = Path(__file__).resolve().parent
+PROJETO = Path(__file__).resolve().parents[2]
+AREAS_PADRAO = ("comandos/RPG", "comandos/ECONOMIA", "comandos/ADMINISTRACAO")
 
 
 class AuditoriaEconomia:
-    def __init__(self, db=None):
+    """Nome mantido por compatibilidade; agora audita todos os comandos principais."""
+
+    def __init__(self, db=None, areas=None):
         self.db = db
+        self.areas = tuple(areas or AREAS_PADRAO)
         self.resultados = []
-        self.comandos = defaultdict(list)
-        self.aliases = defaultdict(list)
+        self.registros = defaultdict(list)
 
     @staticmethod
     def _decorator_command(decorator):
         if not isinstance(decorator, ast.Call):
             return None
         func = decorator.func
-        if not isinstance(func, ast.Attribute) or func.attr != "command":
+        if not isinstance(func, ast.Attribute) or func.attr not in {"command", "hybrid_command"}:
             return None
+
         nome = None
         aliases = []
         for keyword in decorator.keywords:
@@ -38,8 +41,11 @@ class AuditoriaEconomia:
                 aliases = [str(x.value).lower() for x in keyword.value.elts if isinstance(x, ast.Constant)]
         return nome, aliases
 
+    def _registrar(self, nome, arquivo, linha, tipo):
+        self.registros[nome].append({"arquivo": arquivo, "linha": linha, "tipo": tipo})
+
     def _auditar_arquivo(self, arquivo):
-        relativo = str(arquivo.relative_to(RAIZ.parent.parent))
+        relativo = str(arquivo.relative_to(PROJETO))
         item = {"arquivo": relativo, "status": "ok", "erros": [], "comandos": [], "aliases": []}
         try:
             texto = arquivo.read_text(encoding="utf-8")
@@ -65,43 +71,42 @@ class AuditoriaEconomia:
                 nome, aliases = dados
                 nome = nome or no.name.lower()
                 item["comandos"].append(nome)
-                self.comandos[nome].append(relativo)
+                self._registrar(nome, relativo, no.lineno, "comando")
                 for alias in aliases:
                     item["aliases"].append(alias)
-                    self.aliases[alias].append(relativo)
+                    self._registrar(alias, relativo, no.lineno, "alias")
 
         self.resultados.append(item)
 
     def executar(self):
         self.resultados = []
-        self.comandos.clear()
-        self.aliases.clear()
+        self.registros.clear()
 
-        arquivos = sorted(p for p in RAIZ.rglob("*.py") if "__pycache__" not in p.parts)
+        arquivos = []
+        for area in self.areas:
+            raiz = PROJETO / area
+            if raiz.exists():
+                arquivos.extend(p for p in raiz.rglob("*.py") if "__pycache__" not in p.parts)
+
+        arquivos = sorted(set(arquivos))
         for arquivo in arquivos:
             self._auditar_arquivo(arquivo)
 
         conflitos = []
-        nomes = defaultdict(set)
-        for nome, arquivos_nome in self.comandos.items():
-            for arquivo in arquivos_nome:
-                nomes[nome].add(arquivo)
-        for alias, arquivos_alias in self.aliases.items():
-            for arquivo in arquivos_alias:
-                nomes[alias].add(arquivo)
-
-        for nome, arquivos_nome in sorted(nomes.items()):
-            if len(arquivos_nome) > 1:
-                conflitos.append({"nome": nome, "arquivos": sorted(arquivos_nome)})
+        for nome, registros in sorted(self.registros.items()):
+            if len(registros) > 1:
+                conflitos.append({"nome": nome, "registros": registros})
 
         arquivos_erro = [x for x in self.resultados if x["status"] == "erro"]
         relatorio = {
             "executado_em": datetime.now(timezone.utc),
+            "areas": list(self.areas),
             "arquivos": len(arquivos),
             "arquivos_ok": len(arquivos) - len(arquivos_erro),
             "arquivos_com_erro": len(arquivos_erro),
             "conflitos_comandos": conflitos,
             "total_comandos": sum(len(x["comandos"]) for x in self.resultados),
+            "total_aliases": sum(len(x["aliases"]) for x in self.resultados),
             "detalhes": self.resultados,
         }
 
@@ -114,5 +119,5 @@ class AuditoriaEconomia:
     def resumo(relatorio):
         return (
             f"{relatorio['arquivos_ok']}/{relatorio['arquivos']} arquivos válidos | "
-            f"{len(relatorio['conflitos_comandos'])} conflitos de comando"
+            f"{len(relatorio['conflitos_comandos'])} conflitos de comando/alias"
         )
