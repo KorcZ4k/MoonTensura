@@ -14,7 +14,7 @@ class GovernosAdmin(commands.Cog):
         self.tesouros = db["Economia_Tesouros"]
         self.eventos = db["Economia_Eventos"]
 
-    @commands.command(name="criar_governo")
+    @commands.command(name="criar_governo_admin")
     @commands.has_permissions(administrator=True)
     async def criar_governo(self, ctx, nome: str, tesouro_inicial: float = 0):
         governo = self.motor.criar_governo(ctx.guild.id, nome, tesouro_inicial)
@@ -28,21 +28,15 @@ class GovernosAdmin(commands.Cog):
         if campo not in permitidos:
             await ctx.send("❌ Campos: `nome`, `status`, `autonomia`, `controlado_por_jogador`, `territorio`.")
             return
-        if campo in {"autonomia", "controlado_por_jogador"}:
-            valor_final = valor.lower() in {"true", "sim", "s", "1", "ativo"}
-        else:
-            valor_final = valor
-        resultado = self.governos.update_one(
-            {"governo_id": str(ctx.guild.id)},
-            {"$set": {campo: valor_final}},
-        )
+        valor_final = valor.lower() in {"true", "sim", "s", "1", "ativo"} if campo in {"autonomia", "controlado_por_jogador"} else valor
+        resultado = self.governos.update_one({"governo_id": str(ctx.guild.id)}, {"$set": {campo: valor_final}})
         if not resultado.matched_count:
             await ctx.send("❌ Governo inexistente. Use `!criar_governo` primeiro.")
             return
         self.eventos.insert_one({"tipo": "edicao_governo", "governo_id": str(ctx.guild.id), "campo": campo, "valor": valor_final, "administrador_id": str(ctx.author.id)})
         await ctx.send(f"✅ Governo atualizado: **{campo} = {valor_final}**.")
 
-    @commands.command(name="definir_imposto")
+    @commands.command(name="definir_imposto_admin")
     @commands.has_permissions(administrator=True)
     async def definir_imposto(self, ctx, tipo: str, percentual: float):
         resultado = self.motor.definir_imposto(ctx.guild.id, tipo, percentual / 100)
@@ -51,7 +45,7 @@ class GovernosAdmin(commands.Cog):
             return
         await ctx.send(f"📊 Imposto de **{tipo}** definido para **{resultado['aliquota'] * 100:.2f}%**.")
 
-    @commands.command(name="definir_tarifa")
+    @commands.command(name="definir_tarifa_admin")
     @commands.has_permissions(administrator=True)
     async def definir_tarifa(self, ctx, tipo: str, percentual: float):
         resultado = self.motor.definir_tarifa(ctx.guild.id, tipo, percentual / 100)
@@ -60,7 +54,7 @@ class GovernosAdmin(commands.Cog):
             return
         await ctx.send(f"🚢 Tarifa de **{tipo}** definida para **{resultado['aliquota'] * 100:.2f}%**.")
 
-    @commands.command(name="injetar_liquidez")
+    @commands.command(name="injetar_liquidez_governo")
     @commands.has_permissions(administrator=True)
     async def injetar_liquidez(self, ctx, quantidade: float, *, motivo: str = "Intervenção administrativa"):
         quantidade = float(quantidade)
@@ -71,15 +65,8 @@ class GovernosAdmin(commands.Cog):
         if not tesouro:
             await ctx.send("❌ Governo ou tesouro inexistente.")
             return
-        self.tesouros.update_one(
-            {"_id": tesouro["_id"]},
-            {"$inc": {"saldo_bronze": quantidade, "liquidez_injetada_bronze": quantidade}},
-        )
-        self.eventos.insert_one({
-            "tipo": "injecao_liquidez_governo", "governo_id": str(ctx.guild.id),
-            "quantidade_hunos": quantidade, "motivo": motivo,
-            "administrador_id": str(ctx.author.id),
-        })
+        self.tesouros.update_one({"_id": tesouro["_id"]}, {"$inc": {"saldo_bronze": quantidade, "liquidez_injetada_bronze": quantidade}})
+        self.eventos.insert_one({"tipo": "injecao_liquidez_governo", "governo_id": str(ctx.guild.id), "quantidade_hunos": quantidade, "motivo": motivo, "administrador_id": str(ctx.author.id)})
         await ctx.send(f"💉 **{quantidade:,.0f} Hunos** foram injetados no tesouro.\nMotivo: {motivo}")
 
     @commands.command(name="ver_governo")
