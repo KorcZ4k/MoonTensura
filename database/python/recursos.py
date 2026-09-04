@@ -1,36 +1,49 @@
 from datetime import datetime, timezone
 
 
+# Catálogo global de recursos do sistema econômico.
 RECURSOS_PADRAO = {
     "construcao": [
-        "madeira", "pedra", "areia", "argila", "tijolos", "cimento", "cal", "vidro",
+        "madeira", "pedra", "areia", "argila", "tijolos", "cimento", "cal", "cascalho",
+        "vidro", "ceramica", "telhas", "madeira_processada", "aco_reforcado",
     ],
-    "metais": [
-        "ferro", "metal", "aco", "cobre", "bronze", "prata", "ouro", "aluminio", "carvao",
+    "minerios_e_metais": [
+        "ferro", "metal", "aco", "cobre", "bronze", "estanho", "chumbo", "zinco",
+        "aluminio", "niquel", "cromo", "manganes", "prata", "ouro", "platina",
     ],
     "alimentos": [
-        "carne", "peixe", "graos", "trigo", "arroz", "milho", "batata", "frutas", "vegetais", "sal", "acucar",
+        "carne", "peixe", "leite", "ovos", "graos", "trigo", "arroz", "milho",
+        "batata", "frutas", "vegetais", "sal", "acucar", "farinha", "oleos",
     ],
     "animais": [
-        "gado", "ovelhas", "cabras", "porcos", "cavalos", "aves",
+        "gado", "ovelhas", "cabras", "porcos", "cavalos", "aves", "animais_de_carga",
     ],
-    "produtos": [
-        "couro", "la", "tecido", "madeira_processada", "tijolo_processado", "ferramentas", "armas", "armaduras",
+    "produtos_e_materiais": [
+        "couro", "la", "algodao", "tecido", "papel", "borracha", "plastico",
+        "ferramentas", "pecas", "corda", "tinta",
     ],
     "energia_e_combustivel": [
-        "lenha", "carvao_vegetal", "carvao_mineral", "petroleo", "gas", "energia",
+        "lenha", "carvao_vegetal", "carvao_mineral", "petroleo", "gas", "combustivel",
     ],
     "naturais": [
-        "agua", "terra_fertil", "ervas", "plantas_medicinais", "oleos", "corantes",
+        "agua", "terra_fertil", "sementes", "ervas", "plantas_medicinais", "madeira_agricola",
+        "corantes", "enxofre",
+    ],
+    "industriais_e_militares": [
+        "armas", "armaduras", "escudos", "equipamento_militar", "ferramentas_industriais",
+    ],
+    "especiais": [
+        "cristais", "materiais_magicos", "nucleos_magicos", "medicamentos",
     ],
 }
 
 
 def todos_os_recursos():
-    return [recurso for categoria in RECURSOS_PADRAO.values() for recurso in categoria]
+    return sorted({recurso for categoria in RECURSOS_PADRAO.values() for recurso in categoria})
 
 
 def criar_recursos_iniciais(db, governo_id, guild_id, owner_id=None, tipo="reino"):
+    """Cria um estoque de recursos sem substituir um estoque já existente."""
     collection = db["Recursos"]
     agora = datetime.now(timezone.utc)
     documento = collection.find_one({"governo_id": str(governo_id)})
