@@ -1,22 +1,16 @@
-"""Auditoria estática global dos comandos do bot.
-
-Executa antes do carregamento das extensões e detecta erros de sintaxe,
-comandos duplicados, aliases duplicados e colisões entre comandos e aliases
-nas áreas RPG, ECONOMIA e ADMINISTRACAO.
-"""
+"""Auditoria estática global dos comandos do bot."""
 
 import ast
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-
 PROJETO = Path(__file__).resolve().parents[2]
 AREAS_PADRAO = ("comandos/RPG", "comandos/ECONOMIA", "comandos/ADMINISTRACAO")
 
 
 class AuditoriaEconomia:
-    """Nome mantido por compatibilidade; agora audita todos os comandos principais."""
+    """Nome mantido por compatibilidade; agora audita todos os comandos globais."""
 
     def __init__(self, db=None, areas=None):
         self.db = db
@@ -30,6 +24,12 @@ class AuditoriaEconomia:
             return None
         func = decorator.func
         if not isinstance(func, ast.Attribute) or func.attr not in {"command", "hybrid_command"}:
+            return None
+        # Apenas @commands.command e @commands.hybrid_command são comandos
+        # globais. Decorators como @welcome.command são subcomandos e possuem
+        # namespace próprio, portanto podem compartilhar nomes como channel,
+        # message e toggle sem conflito.
+        if not isinstance(func.value, ast.Name) or func.value.id != "commands":
             return None
 
         nome = None
@@ -48,8 +48,7 @@ class AuditoriaEconomia:
         relativo = str(arquivo.relative_to(PROJETO))
         item = {"arquivo": relativo, "status": "ok", "erros": [], "comandos": [], "aliases": []}
         try:
-            texto = arquivo.read_text(encoding="utf-8")
-            arvore = ast.parse(texto, filename=str(arquivo))
+            arvore = ast.parse(arquivo.read_text(encoding="utf-8"), filename=str(arquivo))
         except SyntaxError as erro:
             item["status"] = "erro"
             item["erros"].append(f"Sintaxe linha {erro.lineno}: {erro.msg}")
@@ -75,28 +74,25 @@ class AuditoriaEconomia:
                 for alias in aliases:
                     item["aliases"].append(alias)
                     self._registrar(alias, relativo, no.lineno, "alias")
-
         self.resultados.append(item)
 
     def executar(self):
         self.resultados = []
         self.registros.clear()
-
         arquivos = []
         for area in self.areas:
             raiz = PROJETO / area
             if raiz.exists():
                 arquivos.extend(p for p in raiz.rglob("*.py") if "__pycache__" not in p.parts)
-
         arquivos = sorted(set(arquivos))
         for arquivo in arquivos:
             self._auditar_arquivo(arquivo)
 
-        conflitos = []
-        for nome, registros in sorted(self.registros.items()):
-            if len(registros) > 1:
-                conflitos.append({"nome": nome, "registros": registros})
-
+        conflitos = [
+            {"nome": nome, "registros": registros}
+            for nome, registros in sorted(self.registros.items())
+            if len(registros) > 1
+        ]
         arquivos_erro = [x for x in self.resultados if x["status"] == "erro"]
         relatorio = {
             "executado_em": datetime.now(timezone.utc),
@@ -109,15 +105,10 @@ class AuditoriaEconomia:
             "total_aliases": sum(len(x["aliases"]) for x in self.resultados),
             "detalhes": self.resultados,
         }
-
         if self.db is not None:
             self.db["Economia_Auditorias"].insert_one(relatorio.copy())
-
         return relatorio
 
     @staticmethod
     def resumo(relatorio):
-        return (
-            f"{relatorio['arquivos_ok']}/{relatorio['arquivos']} arquivos válidos | "
-            f"{len(relatorio['conflitos_comandos'])} conflitos de comando/alias"
-        )
+        return f"{relatorio['arquivos_ok']}/{relatorio['arquivos']} arquivos válidos | {len(relatorio['conflitos_comandos'])} conflitos de comando/alias"
