@@ -27,7 +27,7 @@ class Mora(commands.Cog):
     # ==========================================
 
     @commands.command(name='msaldo')
-    async def saldo(self, ctx):
+    async def msaldo(self, ctx):
 
         jogador = obter_mora(
             ctx.author.id,
@@ -74,7 +74,7 @@ class Mora(commands.Cog):
     # ==========================================
 
     @commands.command(name='mpagar')
-    async def pagar(self, ctx, quantidade: int):
+    async def mpagar(self, ctx, quantidade: int):
 
         mencoes = ctx.message.mentions
 
